@@ -30,8 +30,7 @@ bcb_hull <- bcb %>%
   st_as_text()
 
 # get high resolution bc maps boundaries for when we spatialize tha parquet files
-bcb_hres <- bcmaps::bc_bound_hres() %>%
-  vect()
+bcb_hres <- bcmaps::bc_bound_hres()
 
 # need to set a username and password
 # see here for instructions
@@ -186,16 +185,21 @@ d <- arrow::open_dataset(files) %>%
   mutate(
     across(
       c(kingdom, phylum, class, order, family, genus, species),
-      ~coalesce(.x, "unknown")
+      ~ coalesce(.x, "unknown")
     )
   ) %>%
   group_by(kingdom, phylum, class)
-  
+
 
 hive_path <- here::here("data", "gbif_hive")
 
 # resave as hive partitioning based on taxononmy, maybe will allow for easier summarization in the future
-arrow::write_dataset(d, path = hive_path)
+arrow::write_dataset(
+  d,
+  path = hive_path,
+  max_rows_per_file = 100000,
+  existing_data_behavior = "error"
+)
 
 # copy the file directory for the hive to be spatial
 # we cant just make the milions of points spatial at once, it crashes computers to do that (3-50 m) points is too many!
@@ -203,26 +207,60 @@ fs::dir_ls(hive_path, recurse = T, type = "dir") %>%
   str_replace("gbif_hive", "gbif_hive_spatial") %>%
   fs::dir_create()
 
+x <- fs::dir_ls(hive_path, recurse = T, type = "file") %>%
+  str_subset("Aves") %>%
+  .[[2]]
+
+
 fs::dir_ls(hive_path, recurse = T, type = "file") %>%
-  map(\(x) {
-    print(x)
-    savename <- str_replace(x, "gbif_hive", "gbif_hive_spatial")
-    savename_empty <- str_replace(savename, ".parquet", ".txt")
-    if(file.exists(savename) | file.exists(savename_empty)) {
-      # message("Already processed this one")
-      return()
-    }
-    pq <- read_parquet(x)
+  map(
+    \(x) {
+      print(x)
+      savename <- str_replace(x, "gbif_hive", "gbif_hive_spatial")
+      savename_empty <- str_replace(savename, ".parquet", ".txt")
+      if (file.exists(savename) | file.exists(savename_empty)) {
+        # message("Already processed this one")
+        return()
+      }
+      pq <- read_parquet(x)
 
-    v <- vect(pq, geom = c("decimallongitude", "decimallatitude"), crs = "epsg:4326")
+      bcb_hres_v <- vect(bcb_hres)
 
-    out <- crop(v, bcb_hres)
-    # if there are no valid observations in the file, save a text file so we can skip it next time
-    # and pick up from where we left off
-    if(nrow(out) == 0) {
-      fs::file_create(savename_empty)
-      return()
-    } 
+      v <- st_as_sf(
+        pq,
+        coords = c("decimallongitude", "decimallatitude"),
+        crs = 4326
+      ) %>%
+        st_transform(3005)
 
-    write_parquet(st_as_sf(out), savename)
-  }, .progress = T)
+      # this is a fast intersect for this use case
+      # st_intersection is VERY slow due to now index in R
+      out_sf <- v %>%
+        mutate(
+          intersect = st_intersects(v, bcb_hres) %>%
+            as.logical
+        ) %>%
+        filter(intersect)
+
+      # if there are no valid observations in the file, save a text file so we can skip it next time
+      # and pick up from where we left off
+      if (nrow(out) == 0) {
+        fs::file_create(savename_empty)
+        return()
+      }
+
+      write_parquet(st_as_sf(out), savename)
+    },
+    .progress = T
+  )
+
+hive_path_s <- here::here("data", "gbif_hive_spatial")
+# list all non ".txt" files
+files_s <- fs::dir_ls(
+  hive_path_s,
+  recurse = T,
+  type = "file",
+  regexp = ".parquet$"
+)
+
+d_s <- open_dataset(files_s)
