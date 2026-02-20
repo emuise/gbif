@@ -197,7 +197,7 @@ hive_path <- here::here("data", "gbif_hive")
 arrow::write_dataset(
   d,
   path = hive_path,
-  max_rows_per_file = 100000,
+  max_rows_per_file = 50000,
   existing_data_behavior = "error"
 )
 
