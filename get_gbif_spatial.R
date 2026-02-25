@@ -161,7 +161,9 @@ if (length(download_number) == 0) {
   download_number <- occ_download(my_pred, format = "SIMPLE_PARQUET")
 
   occ_download_wait(download_number)
+}
 
+if (!file.exists(here::here("data", glue::glue("{download_number}.zip")))) {
   # download and unzip the data
   # occ_download_import doesnt seem to work correctly
   # so im doing it manually
@@ -224,8 +226,6 @@ fs::dir_ls(hive_path, recurse = T, type = "file") %>%
       }
       pq <- read_parquet(x)
 
-      bcb_hres_v <- vect(bcb_hres)
-
       v <- st_as_sf(
         pq,
         coords = c("decimallongitude", "decimallatitude"),
@@ -235,7 +235,7 @@ fs::dir_ls(hive_path, recurse = T, type = "file") %>%
 
       # this is a fast intersect for this use case
       # st_intersection is VERY slow due to now index in R
-      out_sf <- v %>%
+      out <- v %>%
         mutate(
           intersect = st_intersects(v, bcb_hres) %>%
             as.logical
@@ -249,7 +249,7 @@ fs::dir_ls(hive_path, recurse = T, type = "file") %>%
         return()
       }
 
-      write_parquet(st_as_sf(out), savename)
+      write_parquet(out, savename)
     },
     .progress = T
   )
@@ -264,3 +264,5 @@ files_s <- fs::dir_ls(
 )
 
 d_s <- open_dataset(files_s)
+
+
