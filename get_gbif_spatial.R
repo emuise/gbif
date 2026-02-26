@@ -196,23 +196,19 @@ d <- arrow::open_dataset(files) %>%
 hive_path <- here::here("data", "gbif_hive")
 
 # resave as hive partitioning based on taxononmy, maybe will allow for easier summarization in the future
-arrow::write_dataset(
-  d,
-  path = hive_path,
-  max_rows_per_file = 50000,
-  existing_data_behavior = "error"
-)
+# commenting out so i can run the full thing at once
+# arrow::write_dataset(
+#   d,
+#   path = hive_path,
+#   max_rows_per_file = 50000,
+#   existing_data_behavior = "error"
+# )
 
 # copy the file directory for the hive to be spatial
 # we cant just make the milions of points spatial at once, it crashes computers to do that (3-50 m) points is too many!
 fs::dir_ls(hive_path, recurse = T, type = "dir") %>%
   str_replace("gbif_hive", "gbif_hive_spatial") %>%
   fs::dir_create()
-
-x <- fs::dir_ls(hive_path, recurse = T, type = "file") %>%
-  str_subset("Aves") %>%
-  .[[2]]
-
 
 fs::dir_ls(hive_path, recurse = T, type = "file") %>%
   map(
@@ -240,7 +236,8 @@ fs::dir_ls(hive_path, recurse = T, type = "file") %>%
           intersect = st_intersects(v, bcb_hres) %>%
             as.logical
         ) %>%
-        filter(intersect)
+        filter(intersect) %>%
+        select(-intersect)
 
       # if there are no valid observations in the file, save a text file so we can skip it next time
       # and pick up from where we left off
@@ -263,6 +260,4 @@ files_s <- fs::dir_ls(
   regexp = ".parquet$"
 )
 
-d_s <- open_dataset(files_s)
-
-
+gbif_spatial <- open_dataset(files_s)
