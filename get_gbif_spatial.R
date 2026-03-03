@@ -247,6 +247,8 @@ fs::dir_ls(hive_path, recurse = T, type = "file") %>%
       }
 
       write_parquet(out, savename)
+
+      return()
     },
     .progress = T
   )

@@ -11,6 +11,8 @@ atlas_dates
 atlas_rem <- atlas_remote(tail(atlas_dates$dates, n = 1))
 colnames(atlas_rem)
 
+qc_names <- colnames(atlas_rem)
+
 datasets <- atlas_rem |>
   group_by(dataset_name) |>
   summarize(cnt = count()) |>
@@ -21,6 +23,8 @@ iris_vers <- atlas_rem |>
   mutate(geom = ST_Point(as.numeric(longitude), as.numeric(latitude))) |>
   to_sf() |>
   collect()
+
+
 
 
 atlas_rem %>%
