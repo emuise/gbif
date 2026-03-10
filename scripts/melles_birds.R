@@ -13,11 +13,11 @@ oldhere <- here::here()
 Sys.setenv("DATAVERSE_SERVER" = "borealisdata.ca")
 
 # custom setup for each file
-dataverse_df <- get_dataset("10.5683/SP2/YD6N7C")$files %>%
+dataverse_df <- get_dataset("10.5683/SP2/BPLPAP")$files %>%
   as_tibble(.name_repair = "minimal") %>%
   select(label, id)
 
-data_folder <- here::here("data", "dataverse", "birds_lancaster")
+data_folder <- here::here("data", "dataverse", "birds_melles")
 fs::dir_create(data_folder)
 
 # get all of the data
@@ -47,7 +47,7 @@ dataverse_df %>%
     }
     csv <- unzip(savename, list = T) %>%
       pull(Name) %>%
-      str_subset(".csv")
+      str_subset(".csv|.xlsx")
     unzip(savename, files = csv, exdir = data_folder)
 
     file.remove(savename)
@@ -56,13 +56,9 @@ dataverse_df %>%
   })
 
 #  density is in #/40ha, so we will need to convert to #/ha
-census_long <- here::here(data_folder, "Bird_Census_Lancaster.1974.csv") %>%
+census_long <- here::here(data_folder, "Bird_Data_Melles.1994.csv") %>%
   read_csv() %>%
-  janitor::clean_names() %>%
-  filter(species != "Total") %>%
-  pivot_longer(cols = dt:ub, names_to = "site", values_to = "density") %>%
-  mutate(density_ha = density / 40) %>% # convert to #/ha
-  select(-density)
+  janitor::clean_names() 
 
 # kml files are always in WGS84, no conversion needed
 sites <- here::here(data_folder, "Lancaster.1974_sites.kml") %>%
