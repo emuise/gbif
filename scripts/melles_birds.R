@@ -138,7 +138,7 @@ species <- here::here(data_folder, "Bird_Names_Melles.1994.csv") %>%
 # behaviour from normal gulls. he confirmed that an msc level birder should be able to pick
 # them out. due to this i am labelling GULL as Larus species
 
-custom_species <- tribble(~name, ~scientific_name, ~common_name,
+custom_species <- tribble(~code, ~scientific_name, ~common_name,
   "GULL", "Larus spp.", "Gull")
 
 all_species <- bind_rows(species, custom_species)
@@ -154,7 +154,7 @@ taxa_wide <- species_taxa %>%
   select(-id) %>%
   pivot_wider(names_from = rank, values_from = name)
 
-species_join <- species %>%
+species_join <- all_species %>%
   left_join(taxa_wide, by = c("scientific_name" = "query"))
 
 census_taxa <- census %>%
