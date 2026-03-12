@@ -5,8 +5,6 @@ library(bcmaps)
 library(dataverse)
 library(taxize)
 
-oldhere <- here::here()
-
 # you will need to set this to your dataverse API access key
 # Sys.setenv("DATAVERSE_KEY" = "yourkeyhere")
 # and set the dataverse server to be UBC
@@ -181,7 +179,7 @@ wgs_crd <- crds(ctrd) %>%
   rename(longitude = x, latitude = y)
 
 schema <- arrow::read_parquet(
-  "C:/Users/evanm/Documents/r-projects/gbif/data/living_data_cleaned/salamanders_BQ_format.parquet"
+  here::here("data", "living_data_cleaned", "salamanders_BQ_format.parquet")
 ) %>%
   names()
 
@@ -208,7 +206,7 @@ merged <- ctrd %>%
     day_obs = day(date),
     time_obs = NA,
     group = "Birds",
-    observed_rank = "species",
+    observed_rank = ifelse(is.na(valid_scientific_name), "genus", "species"),
     dataset_name = "Data for: Effects of landscape and local habitat features on bird communities: a study of urban gradient in greater Vancouver.",
     dataset_creator = "Melles, Stephanie J.",
     dataset_publisher = "Borealis",

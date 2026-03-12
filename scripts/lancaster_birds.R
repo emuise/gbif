@@ -5,8 +5,6 @@ library(bcmaps)
 library(dataverse)
 library(taxize)
 
-oldhere <- here::here()
-
 # you will need to set this to your dataverse API access key
 # Sys.setenv("DATAVERSE_KEY" = "yourkeyhere")
 # and set the dataverse server to be UBC
@@ -62,7 +60,13 @@ census_long <- here::here(data_folder, "Bird_Census_Lancaster.1974.csv") %>%
   filter(species != "Total") %>%
   pivot_longer(cols = dt:ub, names_to = "site", values_to = "density") %>%
   mutate(density_ha = density / 40) %>% # convert to #/ha
-  select(-density)
+  select(-density) %>%
+  # we don't have a matched species for BT (an infrequent observation) in the species list
+  # it is likely not a typo of BTP, as it shows up in all the tables
+  # searching Lancaster's thesis doesn't reveal anything. due to this
+  # omitting from the dataset - we hae no idea what it is other than a bird
+  filter(species != "BT")
+
 
 # kml files are always in WGS84, no conversion needed
 sites <- here::here(data_folder, "Lancaster.1974_sites.kml") %>%
@@ -112,7 +116,9 @@ wgs_crd <- crds(ctrd) %>%
   as_tibble() %>%
   rename(longitude = x, latitude = y)
 
-schema <- arrow::read_parquet("C:/Users/evanm/Documents/r-projects/gbif/data/living_data_cleaned/salamanders_BQ_format.parquet") %>%
+schema <- arrow::read_parquet(
+  here::here("data", "living_data_cleaned", "salamanders_BQ_format.parquet")
+) %>%
   names()
 
 
@@ -159,7 +165,11 @@ merged <- ctrd %>%
   ) %>%
   select(all_of(schema))
 
-save_loc <- here::here("data", "living_data_cleaned", "lancaster_birds_1974.parquet")
+save_loc <- here::here(
+  "data",
+  "living_data_cleaned",
+  "lancaster_birds_1974.parquet"
+)
 fs::dir_create(dirname(save_loc))
 
 arrow::write_parquet(merged, save_loc)
