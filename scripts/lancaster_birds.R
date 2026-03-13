@@ -45,7 +45,7 @@ dataverse_df %>%
     }
     csv <- unzip(savename, list = T) %>%
       pull(Name) %>%
-      str_subset(".csv")
+      str_subset(".csv|.xlsx")
     unzip(savename, files = csv, exdir = data_folder)
 
     file.remove(savename)
