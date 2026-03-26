@@ -196,12 +196,6 @@ merged <- ctrd %>%
     coordinate_uncertainty = 10, # this is assuming  10 m of inaccuracy for GPS
     coordinate_uncertainty_unit = "meter",
     year_obs = year(date),
-    # dates are based on middle of metadata file: Lancaster.1974_Data_Management_&_Descriptions.csv
-    # winter is by far the longest season
-    # spring is april 11 to may 31 (may 6 centre)
-    # summer is june 1 to august 25 (july 13 centre)
-    # autumn is august 26 to october 21 (september 23 centre)
-    # winter is october 22 - april 10 (january 15 centre)
     month_obs = month(date),
     day_obs = day(date),
     time_obs = NA,
