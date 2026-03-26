@@ -213,7 +213,7 @@ fs::dir_ls(hive_path, recurse = T, type = "dir") %>%
 fs::dir_ls(hive_path, recurse = T, type = "file") %>%
   map(
     \(x) {
-      print(x)
+      # print(x)
       savename <- str_replace(x, "gbif_hive", "gbif_hive_spatial")
       savename_empty <- str_replace(savename, ".parquet", ".txt")
       if (file.exists(savename) | file.exists(savename_empty)) {
@@ -227,7 +227,8 @@ fs::dir_ls(hive_path, recurse = T, type = "file") %>%
         coords = c("decimallongitude", "decimallatitude"),
         crs = 4326
       ) %>%
-        st_transform(3005)
+        st_transform(3005) %>%
+        mutate("decimallongitude" = pq$decimallongitude, "decimallatitude" = pq$decimallatitude)
 
       # this is a fast intersect for this use case
       # st_intersection is VERY slow due to now index in R
