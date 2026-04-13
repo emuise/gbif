@@ -104,7 +104,7 @@ output2 %>%
 
 # this checks if the data has "deny first permissions"
 # meaning its just information that the data exists, not the data itself
-output2 %>%
+save <- output2 %>%
   mutate(
     access = map(dataUrl, \(x) {
       #page <- RCurl::getURL(x)
@@ -133,3 +133,56 @@ output2 %>%
 accessed <- as_tibble(save) %>% unnest(access) %>% filter(is.na(access) | access) %>% filter_out(str_detect(str_to_lower(title), "hly"))
 
 write_csv(accessed, "output2.csv")
+
+
+filters <- 'filter_out(str_detect(str_to_lower(title), "ipcc")) %>%
+  filter_out(str_detect(str_to_lower(title), "hotogramm")) %>%
+  filter_out(str_detect(str_to_lower(title), "physical oceanography")) %>%
+  filter_out(str_detect(str_to_lower(title), "arcticRIMS")) %>%
+  filter_out(str_detect(str_to_lower(title), "arche")) %>%
+  filter_out(str_detect(str_to_lower(title), "archaeol")) %>%
+  filter_out(str_detect(str_to_lower(title), "sediment core")) %>%
+  filter_out(str_detect(str_to_lower(title), "radiocarbon")) %>%
+  filter_out(str_detect(str_to_lower(title), "weather")) %>%
+  filter_out(str_detect(str_to_lower(title), "iceberg")) %>%
+  filter_out(str_detect(str_to_lower(title), "glacier")) %>%
+  filter_out(str_detect(str_to_lower(title), "alaska")) %>%
+  filter_out(str_detect(str_to_lower(title), "aws")) %>%
+  filter_out(str_detect(str_to_lower(title), "bering")) %>%
+  filter_out(str_detect(str_to_lower(title), "ice")) %>%
+  filter_out(str_detect(str_to_lower(title), "isotope")) %>%
+  filter_out(str_detect(str_to_lower(title), "tide")) %>%
+  filter_out(str_detect(str_to_lower(title), "snow")) %>%
+  filter_out(str_detect(str_to_lower(title), "water")) %>%
+  filter_out(str_detect(str_to_lower(title), "carbon")) %>%
+  filter_out(str_detect(str_to_lower(title), "arctic")) %>%
+  filter_out(str_detect(str_to_lower(title), "seward")) %>%
+  filter_out(str_detect(str_to_lower(title), "chemistry")) %>%
+  filter_out(str_detect(str_to_lower(title), "bathymetry")) %>%
+  filter_out(str_detect(str_to_lower(title), "satellite")) %>%
+  filter_out(str_detect(str_to_lower(title), "protein")) %>%
+  filter_out(str_detect(str_to_lower(title), "ncep")) %>%
+  filter_out(str_detect(str_to_lower(title), "modis")) %>%
+  filter_out(str_detect(str_to_lower(title), "site temperature data")) %>%
+  filter_out(str_detect(str_to_lower(title), "hydro1k")) %>%
+  filter_out(str_detect(str_to_lower(title), "hourly")) %>%
+  filter_out(str_detect(str_to_lower(title), "cumulative")) %>%
+  filter_out(str_detect(str_to_lower(title), "noaa")) %>%
+  filter_out(str_detect(str_to_lower(title), "gravity")) %>%
+  filter_out(str_detect(str_to_lower(title), "vertnet")) %>%
+  filter_out(str_detect(str_to_lower(title), "vegbank")) %>%
+  filter_out(str_detect(str_to_lower(title), "usa")) %>%
+  filter_out(str_detect(str_to_lower(title), "hly"))'
+
+filters_clean <- filters %>% 
+  str_remove_all("filter_out\\(str_detect\\(str_to_lower\\(title\\), ") %>% 
+  str_remove_all("\\)\\)") %>%
+  str_remove_all("%>%\\\n") %>%
+  str_split("   ") %>%
+  unlist() %>%
+  str_remove_all('[\\\\"]')
+
+lp <- overlap_result %>% pull(title) %>% str_subset("lodgepole")
+map(filters_clean, \(x) {
+  lp %>% str_detect(x)
+})
