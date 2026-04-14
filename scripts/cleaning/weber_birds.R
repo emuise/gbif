@@ -247,7 +247,7 @@ wgs_crd <- crds(ctrd) %>%
   rename(longitude = x, latitude = y)
 
 schema <- arrow::read_parquet(
-  here::here("data", "living_data_cleaned", "salamanders_BQ_format.parquet")
+  here::here("data", "cleaned", "salamanders_BQ_format.parquet")
 ) %>%
   names()
 
@@ -280,7 +280,7 @@ merged <- ctrd %>%
 
 save_loc <- here::here(
   "data",
-  "living_data_cleaned",
+  "cleaned",
   "weber_birds_1972.parquet"
 )
 fs::dir_create(dirname(save_loc))

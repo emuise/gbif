@@ -273,7 +273,7 @@ merged <- bind_cols(sal_clean, metadata) %>%
   relocate(any_of(qc_names)) %>%
   relocate(vernacular, group, .before = observed_rank)
 
-save_loc <- here::here("data", "living_data_cleaned", "salamanders_BQ_format.parquet")
+save_loc <- here::here("data", "cleaned", "salamanders_BQ_format.parquet")
 fs::dir_create(dirname(save_loc))
 
 arrow::write_parquet(merged, save_loc)
