@@ -24,7 +24,7 @@ script_data <- page %>%
 # appears to be the header and footer, and removing annoying values
 # then split on "," and unlist to have a searchable character vector
 
-split_data <- script_data[[35]] %>%
+split_data <- script_data[[36]] %>%
   str_split(';') %>%
   .[[1]] %>%
   str_split(' = ') %>%
@@ -43,15 +43,18 @@ map(urls, \(x) {
   md <- as_id(x) %>%
     drive_get()
 
+  savename <- here::here(edna_dir, md$name)
+
   type = NULL
   
   if(tools::file_ext(md$name) == "") {
     type = "docx"
+    savename <- glue::glue(tools::file_path_sans_ext(savename), ".", type)
+  }
+
+  if(file.exists(savename)) {
+    return(savename)
   }
 
   drive_download(md$id, path = here::here(edna_dir, md$name), type = type)
 })
-
-file_info <- urls %>%
-  as_id() %>%
-  drive_get()
