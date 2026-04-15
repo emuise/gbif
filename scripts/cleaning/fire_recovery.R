@@ -222,7 +222,7 @@ merged <- all_sub %>%
 save_loc <- here::here(
   "data",
   "cleaned",
-  "lodgepole_recovery")
+  "lodgepole_recovery.parquet")
 fs::dir_create(dirname(save_loc))
 
 arrow::write_parquet(merged, save_loc)

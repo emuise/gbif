@@ -104,6 +104,8 @@ output2 %>%
 
 # this checks if the data has "deny first permissions"
 # meaning its just information that the data exists, not the data itself
+# there is a readpermission column dummy
+# and an ispublic column
 save <- output2 %>%
   mutate(
     access = map(dataUrl, \(x) {
