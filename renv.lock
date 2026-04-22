@@ -78,12 +78,13 @@
       "Encoding": "UTF-8",
       "RoxygenNote": "6.0.1",
       "Repository": "https://bioc-release.r-universe.dev",
-      "RemoteUrl": "https://github.com/bioc/BiocVersion",
-      "RemoteRef": "RELEASE_3_22",
-      "RemoteSha": "fea53ac938311018c7513d2339cdd5f928cd72c5",
       "NeedsCompilation": "no",
       "Author": "Martin Morgan [aut], Marcel Ramos [ctb], Bioconductor Package Maintainer [ctb, cre]",
-      "Maintainer": "Bioconductor Package Maintainer <maintainer@bioconductor.org>"
+      "Maintainer": "Bioconductor Package Maintainer <maintainer@bioconductor.org>",
+      "RemoteType": "bioconductor",
+      "RemoteUrl": "https://github.com/bioc/BiocVersion",
+      "RemoteRef": "RELEASE_3_22",
+      "RemoteSha": "fea53ac938311018c7513d2339cdd5f928cd72c5"
     },
     "DBI": {
       "Package": "DBI",
@@ -1897,16 +1898,15 @@
       "Encoding": "UTF-8",
       "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.2",
+      "Author": "Mark Padgham [aut, cre] (ORCID: <https://orcid.org/0000-0003-2172-5265>)",
+      "Maintainer": "Mark Padgham <mark.padgham@email.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "deposits",
       "RemoteUsername": "mpadge",
       "RemotePkgRef": "mpadge/deposits",
       "RemoteRef": "HEAD",
-      "RemoteSha": "11203b02a19de41466bb17af66e69a7b9e8e5fe4",
-      "NeedsCompilation": "no",
-      "Author": "Mark Padgham [aut, cre] (ORCID: <https://orcid.org/0000-0003-2172-5265>)",
-      "Maintainer": "Mark Padgham <mark.padgham@email.com>"
+      "RemoteSha": "11203b02a19de41466bb17af66e69a7b9e8e5fe4"
     },
     "desc": {
       "Package": "desc",
@@ -2079,7 +2079,7 @@
     },
     "duckdb": {
       "Package": "duckdb",
-      "Version": "1.5.0",
+      "Version": "1.5.2",
       "Source": "Repository",
       "Title": "DBI Package for the DuckDB Database Management System",
       "Authors@R": "c( person(\"Hannes\", \"Mühleisen\", , \"hannes@cwi.nl\", role = \"aut\", comment = c(ORCID = \"0000-0001-8552-0029\")), person(\"Mark\", \"Raasveldt\", , \"mark.raasveldt@cwi.nl\", role = \"aut\", comment = c(ORCID = \"0000-0001-5005-6844\")), person(\"Kirill\", \"Müller\", , \"kirill@cynkra.com\", role = \"cre\", comment = c(ORCID = \"0000-0002-1416-3412\")), person(\"Stichting DuckDB Foundation\", role = \"cph\"), person(\"Apache Software Foundation\", role = \"cph\"), person(\"PostgreSQL Global Development Group\", role = \"cph\"), person(\"The Regents of the University of California\", role = \"cph\"), person(\"Cameron Desrochers\", role = \"cph\"), person(\"Victor Zverovich\", role = \"cph\"), person(\"RAD Game Tools\", role = \"cph\"), person(\"Valve Software\", role = \"cph\"), person(\"Rich Geldreich\", role = \"cph\"), person(\"Tenacious Software LLC\", role = \"cph\"), person(\"The RE2 Authors\", role = \"cph\"), person(\"Google Inc.\", role = \"cph\"), person(\"Facebook Inc.\", role = \"cph\"), person(\"Steven G. Johnson\", role = \"cph\"), person(\"Jiahao Chen\", role = \"cph\"), person(\"Tony Kelman\", role = \"cph\"), person(\"Jonas Fonseca\", role = \"cph\"), person(\"Lukas Fittl\", role = \"cph\"), person(\"Salvatore Sanfilippo\", role = \"cph\"), person(\"Art.sy, Inc.\", role = \"cph\"), person(\"Oran Agra\", role = \"cph\"), person(\"Redis Labs, Inc.\", role = \"cph\"), person(\"Melissa O'Neill\", role = \"cph\"), person(\"PCG Project contributors\", role = \"cph\") )",
@@ -2105,9 +2105,11 @@
         "dbplyr",
         "dplyr",
         "rlang",
+        "sf",
         "testthat (>= 3.0.0)",
         "tibble",
         "vctrs",
+        "wk",
         "withr"
       ],
       "Biarch": "true",
@@ -3905,16 +3907,15 @@
       ],
       "URL": "https://github.com/emuise/muiselib2",
       "BugReports": "https://github.com/emuise/muiselib2/issues",
+      "Author": "Evan Muise [aut, cre]",
+      "Maintainer": "Evan Muise <evanmuise@gmail.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "muiselib2",
       "RemoteUsername": "emuise",
       "RemotePkgRef": "emuise/muiselib2",
       "RemoteRef": "HEAD",
-      "RemoteSha": "a5fa2c7ecb25d5d6c015a5197d253ab1ec748476",
-      "NeedsCompilation": "no",
-      "Author": "Evan Muise [aut, cre]",
-      "Maintainer": "Evan Muise <evanmuise@gmail.com>"
+      "RemoteSha": "a5fa2c7ecb25d5d6c015a5197d253ab1ec748476"
     },
     "nanoarrow": {
       "Package": "nanoarrow",

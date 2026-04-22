@@ -19,12 +19,19 @@ script_data <- page %>%
   rvest::html_nodes("script") %>% 
   rvest::html_text()
 
+
+# sometimes the scrape returns different numbers of objects; 
+# the final index with https seems to be correct!
+https_ind <- which(str_detect(script_data, "https"))
+
+final_ind <- https_ind[length(https_ind)]
+
 # annoying way to extract the infrmation i am looking for
 # urls are in the 35th index, splitting apart based on what
 # appears to be the header and footer, and removing annoying values
 # then split on "," and unlist to have a searchable character vector
 
-split_data <- script_data[[35]] %>%
+split_data <- script_data[[final_ind <- https_ind[length(https_ind)]]] %>%
   str_split(';') %>%
   .[[1]] %>%
   str_split(' = ') %>%

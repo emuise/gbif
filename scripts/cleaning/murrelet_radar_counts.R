@@ -33,7 +33,7 @@ data <- here::here(data_loc, "mamu-count-data.csv") %>%
 
 
 schema <- arrow::read_parquet(
-  here::here("data", "cleaned", "salamanders_BQ_format.parquet")
+  here::here("data", "cleaned", "salamander.parquet")
 ) %>%
   names()
 

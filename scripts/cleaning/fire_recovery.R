@@ -5,7 +5,7 @@ library(dataone)
 library(terra)
 library(tidyterra)
 library(taxize)
-data_loc <- here::here("data", "raw_data", "dataone")
+data_loc <- here::here("data", "raw_data", "dataone", "fire_recovery")
 fs::dir_create(data_loc)
 
 cn <- CNode("PROD")
@@ -148,7 +148,7 @@ veg_spatial <- sites_wgs %>%
   left_join(veg_species_join, by = c("vernacular" = "veg_species"))
 
 schema <- arrow::read_parquet(
-  here::here("data", "cleaned", "salamanders_BQ_format.parquet")
+  here::here("data", "cleaned", "salamander.parquet")
 ) %>%
   names()
 
@@ -222,7 +222,7 @@ merged <- all_sub %>%
 save_loc <- here::here(
   "data",
   "cleaned",
-  "lodgepole_recovery.parquet")
+  "fire_recovery.parquet")
 fs::dir_create(dirname(save_loc))
 
 arrow::write_parquet(merged, save_loc)
