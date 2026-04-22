@@ -23,7 +23,7 @@ sal_data_id <- sal_dataverse_df %>%
 
 sal_bin <- get_file_by_id(sal_data_id)
 
-sal_zip_loc <- here::here("data", "dataverse", "salamander_data.zip")
+sal_zip_loc <- here::here("data", "raw_data", "dataverse", "salamander_data.zip")
 sal_uz_loc <- tools::file_path_sans_ext(sal_zip_loc)
 fs::dir_create(dirname(sal_zip_loc))
 

@@ -15,7 +15,7 @@ dataverse_df <- get_dataset("10.5683/SP2/YD6N7C")$files %>%
   as_tibble(.name_repair = "minimal") %>%
   select(label, id)
 
-data_folder <- here::here("data", "dataverse", "birds_lancaster")
+data_folder <- here::here("data", "raw_data", "dataverse", "birds_lancaster")
 fs::dir_create(data_folder)
 
 # get all of the data

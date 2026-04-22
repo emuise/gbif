@@ -5,7 +5,7 @@ library(dataone)
 library(terra)
 library(tidyterra)
 library(taxize)
-data_loc <- here::here("data", "dataone")
+data_loc <- here::here("data", "raw_data", "dataone")
 fs::dir_create(data_loc)
 
 cn <- CNode("PROD")

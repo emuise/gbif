@@ -4,7 +4,7 @@ library(googledrive)
 
 drive_auth(scopes = "https://www.googleapis.com/auth/drive")
 
-edna_dir <- here::here("data", "edna")
+edna_dir <- here::here("data", "raw_data", "edna")
 fs::dir_create(edna_dir)
 
 
@@ -24,7 +24,7 @@ script_data <- page %>%
 # appears to be the header and footer, and removing annoying values
 # then split on "," and unlist to have a searchable character vector
 
-split_data <- script_data[[36]] %>%
+split_data <- script_data[[35]] %>%
   str_split(';') %>%
   .[[1]] %>%
   str_split(' = ') %>%

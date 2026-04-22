@@ -6,7 +6,7 @@ library(deposits)
 
 
 url <- "https://figshare.com/ndownloader/files/44729566"
-data_loc <- here::here("data", "raw", "murrelet")
+data_loc <- here::here("data", "raw_data", "murrelet")
 fs::dir_create(data_loc)
 
 # you need a figshare account for this to work
