@@ -73,9 +73,9 @@ species_join <- data$vernacular %>%
 spatial <- data %>%
   select(-genus, -species) %>%
   left_join(species_join, by = c("vernacular" = "query")) %>%
-  mutate(latitude = latitude / 10,
-  longitude = -longitude) %>%
-  vect(geom = c("longitude", "latitude"), crs = "epsg:3005")
+  mutate(latitude = latitude / 2,
+    longitude = ifelse(nchar(data$longitude) == 6, longitude, longitude / 10)) %>%
+  vect(geom = c("longitude", "latitude"), crs = "epsg:32610")
 
 ggplot() +
   geom_spatvector(data = bcmaps::bc_bound() %>%
