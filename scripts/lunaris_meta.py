@@ -8,13 +8,12 @@ import shapely
 import numpy as np
 import geopandas as gpd
 import matplotlib.pyplot as plt
-import re
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from tqdm import tqdm
 import json
 import time
-from geopy.exc import GeocoderServiceError, GeocoderQueryError
+from geopy.exc import GeocoderServiceError
 
 # Connect to Lunaris OAI endpoint
 sickle = Sickle('https://www.lunaris.ca/oai/')
@@ -161,8 +160,8 @@ pq.write_table(harvest, fullsavename)
 bcb = gpd.read_file(os.path.join("data", "shps", "bcb_wgs84.gpkg"))
 bcb_geom = bcb.geometry.iloc[0]
 
-fig, ax = plt.subplots(figsize = (10, 10))
-bcb.plot(ax = ax, color = "lightgray", edgecolor = "white", alpha = 0.5)
+# fig, ax = plt.subplots(figsize = (10, 10))
+# bcb.plot(ax = ax, color = "lightgray", edgecolor = "white", alpha = 0.5)
 
 shapely.prepare(bcb_geom)
 
@@ -230,6 +229,9 @@ mask_polygons = shapely.intersects(bcb_geom, poly_geoms)
 
 harvest_df = harvest.to_pandas()
 
+overrides = {
+    "[Untitled]; Alberta; Canada": "Alberta; Canada"
+}
 
 
 final_geom_mask = mask_points | mask_boxes | mask_polygons
@@ -237,6 +239,24 @@ final_geom_mask = mask_points | mask_boxes | mask_polygons
 needs_geocoding_mask = (harvest_df['places'].apply(lambda x: len(x) > 0)) & (~final_geom_mask)
 
 leftover_places = harvest_df.loc[needs_geocoding_mask, 'places'].explode().dropna().unique()
+
+# i am going to make a csv to manually adjust some lookups
+# should save a lot of processing time
+# and also be a complete pita
+
+places_sorted = pd.Series(leftover_places, name = "places").sort_values()
+
+places_sorted.to_csv("harvest/leftover_places.csv", index = False, encoding = "utf-8-sig")
+
+# after here, i manually removed and adjusted many place names to work better with the geocoder
+# i did this multiple times, double checking as i went to ensure that objects are geolocated
+# to at least the province, within canada
+
+updated = pd.read_csv("harvest/leftover_places-manual.csv")
+
+to_lookup = updated['to_lookup'].unique()
+
+to_lookup = to_lookup[to_lookup != "SKIP"]
 
 geolocator = Nominatim(user_agent="evanmuise@gmail.com", timeout = 10)
 
@@ -255,7 +275,7 @@ else:
     print("No cache found. Starting from scratch.")
 
 # Filter leftover_places to only those NOT already in our map
-places_to_process = [p for p in leftover_places if p not in geocoded_map]
+places_to_process = [p for p in to_lookup if p not in geocoded_map]
 
 print(f"Resuming: {len(places_to_process)} unique locations remaining...")
 
@@ -267,10 +287,13 @@ for i, name in enumerate(tqdm(places_to_process, total=len(places_to_process))):
 
     while not success and retries < max_retries:
         try:
-            location = geocode(f"{name}, Canada")
+            
+            location = geocode(name)
+            print(name)
+            print(location)
             
             # API responded. Save the result (either coordinates or None if not found)
-            geocoded_map[name] = {"lat": location.latitude, "lon": location.longitude} if location else None
+            geocoded_map[name] = {"name": location.raw['display_name'], "lat": location.latitude, "lon": location.longitude} if location else None
             success = True
             
         except GeocoderServiceError as e:
@@ -300,6 +323,16 @@ for i, name in enumerate(tqdm(places_to_process, total=len(places_to_process))):
 # Final save
 with open(save_path, 'w') as f:
     json.dump(geocoded_map, f)
+
+
+geocoded_df = pd.DataFrame({
+    'to_lookup': list(geocoded_map.keys()),
+    'geocoded_values': list(geocoded_map.values())
+})
+
+pd.merge(updated, geocoded_df, on = "to_lookup", how = "left").to_csv("harvest/leftover_geocoded.csv", index = False, encoding = "utf-8-sig")
+
+geocoded_df.to_csv("harvest/leftover_geocoded.csv", index = False, encoding = "utf-8-sig")
 
 # --- 2. Identify which names actually overlap BC ---
 # We use a set for O(1) lookup speed later
