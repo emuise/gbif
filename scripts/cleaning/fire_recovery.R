@@ -9,59 +9,20 @@ data_loc <- here::here("data", "raw_data", "dataone", "fire_recovery")
 fs::dir_create(data_loc)
 
 cn <- CNode("PROD")
-# we know the specific title we are looking for
-queryParams <- list(
-  q = "title:Recovery of lodgepole pine forests following mountain pine beetle attack with and without prescribed burning"
-)
-result <- dataone::query(
-  cn,
-  solrQuery = queryParams,
-  as = "data.frame",
-  parse = FALSE
-)
-# there are 6 results, we want the most recently modified one
-recent <- result %>% slice_max(dateModified)
+mn <- getMNode(cn, "urn:node:KNB")
 
-# this PID is just for metadata
-pid <- recent %>% pull(identifier)
 
-# look at the resourcemap to query every file assocaited with that PID
-resource_map <- recent %>% pull(resourceMap)
+# Define the identifier
+packageId <- "doi:10.5063/F15H7DS3"
 
-pkg_query <- pkg_query <- list(
-  q = paste0('resourceMap:"', resource_map, '"'),
-  fl = "identifier,fileName,formatId,formatType",
-  rows = 100
-)
+# Download the package
+pkg <- getPackage(mn, packageId)
 
-pkg_results <- dataone::query(cn, solrQuery = pkg_query, as = "data.frame")
-
-# get all assocaited ids to download
-data_ids <- pkg_results %>%
-  # filter(formatType == "DATA") %>%
-  pull(identifier)
-
-locations <- dataone::resolve(cn, pid[[1]])
-mnId <- locations$data[1, "nodeIdentifier"]
-mn <- getMNode(cn, mnId)
-
-# download all files
-map(data_ids, \(x) {
-  obj <- getObject(mn, x)
-  meta <- getSystemMetadata(mn, x)
-  filename <- meta@fileName
-  savename <- here::here(data_loc, filename)
-  if (file.exists(savename)) {
-    return(savename)
-  }
-
-  writeBin(obj, savename)
-
-  return(savename)
-})
+# nicely named ddata
+unzip(pkg, exdir = data_loc)
 
 # environment_regeneration has the geospatial information
-sites <- read_csv(here::here(data_loc, "environment_regeneration.csv"))
+sites <- read_csv(here::here(data_loc, "data", "environment_regeneration.csv"))
 
 sites_wgs <- sites %>%
   select(location:northing) %>%
@@ -77,7 +38,7 @@ sites_wgs <- sites %>%
 
 # regen file, these are little saplings
 
-regen <- read_csv(here::here(data_loc, "Regeneration.csv")) %>%
+regen <- read_csv(here::here(data_loc, "data", "Regeneration.csv")) %>%
   filter(location != "Jasper_Henry")
 
 regen_long <- regen %>%
@@ -103,7 +64,7 @@ regen_spatial <- sites_wgs %>%
 # still needs to be a little cleaned up to darwin core or bqc
 
 # vegetation
-veg <- read_csv(here::here(data_loc, "Vegetation.csv")) %>%
+veg <- read_csv(here::here(data_loc, "data", "Vegetation.csv")) %>%
   filter(location != "Jasper_Henry")
 
 # i believe these numbers are percent cover, so we can only realistically translate them into occurances

@@ -18,7 +18,7 @@ packageId <- "doi:10.5063/F15H7DS3"
 # Download the package
 pkg <- getPackage(mn, packageId)
 
-# unfortunately the data isn't nicely named and there isnt an easy way to attach that info
+# nicely named ddata
 unzip(pkg, exdir = data_loc)
 
 diets <- here::here(data_loc, "data", "RaptorDiets.csv") %>%
@@ -90,7 +90,6 @@ md_t <- metadata %>%
     year
   )
 
-view(md_t)
 
 schema <- arrow::read_parquet(
   here::here("data", "cleaned", "salamander.parquet")
@@ -127,4 +126,4 @@ license = "CC-BY-4.0") %>%
   select(all_of(schema))
 
 
-arrow::write_parquet(merged, here::here("data", "cleaned", "omnibus_birds.parquet"))
+arrow::write_parquet(merged, here::here("data", "cleaned", "omnibus_prey.parquet"))

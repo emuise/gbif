@@ -14,5 +14,11 @@ missing_ind <- here::here("data", "cleaned", glue::glue("{bases}.parquet")) %>%
   fs::file_exists()
 
 ordered[!missing_ind] %>%
-  map(source)
+  str_subset("edna", negate = T) %>% # not done yet
+  str_subset("global_population_dynamics", negate = T) # not viable due to spatial issues
+
+ordered[!missing_ind] %>%
+  str_subset("edna", negate = T) %>% # not done yet
+  str_subset("global_population_dynamics", negate = T) %>% # not viable due to spatial issues
+  map(source, local = T)
 
