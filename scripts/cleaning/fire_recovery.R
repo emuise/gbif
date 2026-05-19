@@ -13,7 +13,7 @@ mn <- getMNode(cn, "urn:node:KNB")
 
 
 # Define the identifier
-packageId <- "doi:10.5063/F15H7DS3"
+packageId <- "doi:10.5063/F1348HV6"
 
 # Download the package
 pkg <- getPackage(mn, packageId)
