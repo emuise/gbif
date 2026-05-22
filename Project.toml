@@ -1,2 +1,6 @@
 [deps]
-DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+GADM = "a8dd9ffe-31dc-4cf5-a379-ea69100a8233"
+PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
+SpeciesDistributionToolkit = "72b53823-5c0b-4575-ad0e-8e97227ad13b"
+ZipArchives = "49080126-0e18-4c2a-b176-c102e4b3760c"
