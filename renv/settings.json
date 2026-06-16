@@ -1,7 +1,8 @@
 {
-  "bioconductor.version": null,
+  "bioconductor.version": "3.23",
   "external.libraries": [],
   "ignored.packages": [],
+  "lockfile.sanitize": true,
   "package.dependency.fields": [
     "Imports",
     "Depends",
