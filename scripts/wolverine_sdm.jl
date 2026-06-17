@@ -2,24 +2,24 @@ import Pkg; Pkg.activate(".")
 # Pkg.add("SpeciesDistributionToolkit")
 using SpeciesDistributionToolkit
 const SDT = SpeciesDistributionToolkit
+using .SimpleSDMLayers
 using Statistics
 using PrettyTables
 using CairoMakie
 using ZipArchives
-
 
 pd = PolygonData(GADM, Countries)
 fc = downloader(pd; country = "CAN", level = 1)
 
 aoi = FeatureCollection(filter(f -> f.properties["Name"] == "BritishColumbia", fc.features))
 
-extent = SDT.boundingbox(bc)
+extent = SDT.boundingbox(aoi)
 
 chelsa_bioclim = RasterData(CHELSA2, BioClim)
 layers(chelsa_bioclim)[1:5]
 
 
-# get adaptweast data into data folder
+# get adaptwest data into data folder
 aw_url = "https://s3-us-west-2.amazonaws.com/www.cacpd.org/CMIP6v73/normals/Normal_1991_2020_bioclim.zip"
 
 aw_zip_path = joinpath("data", "climate", basename(aw_url))
@@ -58,5 +58,24 @@ vars = ["MAP", # mean annual precipitation (mm)
 "CMD", # Hargreave’s climatic moisture index
 "DD18"] # warming degree days above 18 °C. 
 
-map = joinpath(aw_uz_fold, prefix * "_MAP.tif")
-CDD = joinpath(aw_uz_fold, prefix * "_MAP.tif")
+paths = joinpath.(aw_uz_fold, prefix .* "_".* vars .* ".tif") 
+
+lyrs = map(SDMLayer, paths)
+
+# for species in species
+
+species = taxon("Gulo gulo")
+
+query = [
+    "hasCoordinate" => true,
+    "limit" => 300,
+    "occurrenceStatus" => "PRESENT",
+]
+
+places = occurrences(species, query...)
+
+while length(places) < count(places)
+    print(length(places))
+    occurrences!(places)
+    sleep(1)
+end
