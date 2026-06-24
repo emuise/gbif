@@ -54,13 +54,28 @@ unique_issues <- na_gbif_db %>%
   distinct(flat_issue) %>%
   collect()
 
+# these are the standard geographic flags that are removed
 geo_issues <- c(
-  "COORDINATE_REPROJECTION_FAILED", "COORDINATE_REPROJECTION_SUSPICIOUS",
-  "COORDINATE_UNCERTAINTY_METERS_INVALID", "PRESUMED_NEGATED_LATITUDE",
-  "FOOTPRINT_WKT_MISMATCH", "FOOTPRINT_WKT_INVALID",
-  "COUNTRY_COORDINATE_MISMATCH", "COORDINATE_PRECISION_INVALID",
-  "PRESUMED_NEGATED_LONGITUDE", "CONTINENT_COUNTRY_MISMATCH",
-  "CONTINENT_COORDINATE_MISMATCH", "PRESUMED_SWAPPED_COORDINATE"
+  "ZERO_COORDINATE",
+  "FOOTPRINT_SRS_INVALID",
+  "COORDINATE_OUT_OF_RANGE",
+  "COORDINATE_INVALID",
+  "COORDINATE_REPROJECTION_FAILED", 
+  "COORDINATE_REPROJECTION_SUSPICIOUS",
+  "COORDINATE_UNCERTAINTY_METERS_INVALID", 
+  "PRESUMED_NEGATED_LATITUDE",
+  "FOOTPRINT_WKT_MISMATCH", 
+  "FOOTPRINT_WKT_INVALID",
+  "COUNTRY_COORDINATE_MISMATCH", 
+  "COORDINATE_PRECISION_INVALID",
+  "PRESUMED_NEGATED_LONGITUDE", 
+  "CONTINENT_COUNTRY_MISMATCH",
+  "CONTINENT_COORDINATE_MISMATCH", 
+  "PRESUMED_SWAPPED_COORDINATE",
+  # this is a fix for the taxonomic backbone
+  # basically, if the parser cant find a perfect match to the submitted species ID, it may fuzzy match the species,
+  # this could lead to a confident GENUS
+  "TAXON_MATCH_HIGHERRANK"
 )
 
 # geospatial filtering based on the above 12 issues.
@@ -77,4 +92,4 @@ na_gbif_filtered <- na_gbif_db %>%
     ))
   )
 
-  count(na_gbif_filtered)
+count(na_gbif_filtered)
