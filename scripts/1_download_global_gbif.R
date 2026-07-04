@@ -81,6 +81,29 @@ fs::dir_create(clean_dir)
 con <- dbConnect(duckdb())
 dbExecute(con, "SET preserve_insertion_order = false;")
 dbExecute(con, "SET threads = 4;") 
+# these are the standard geographic flags that are removed
+geo_issues <- c(
+  "ZERO_COORDINATE",
+  "FOOTPRINT_SRS_INVALID",
+  "COORDINATE_OUT_OF_RANGE",
+  "COORDINATE_INVALID",
+  "COORDINATE_REPROJECTION_FAILED", 
+  "COORDINATE_REPROJECTION_SUSPICIOUS",
+  "COORDINATE_UNCERTAINTY_METERS_INVALID", 
+  "PRESUMED_NEGATED_LATITUDE",
+  "FOOTPRINT_WKT_MISMATCH", 
+  "FOOTPRINT_WKT_INVALID",
+  "COUNTRY_COORDINATE_MISMATCH", 
+  "COORDINATE_PRECISION_INVALID",
+  "PRESUMED_NEGATED_LONGITUDE", 
+  "CONTINENT_COUNTRY_MISMATCH",
+  "CONTINENT_COORDINATE_MISMATCH", 
+  "PRESUMED_SWAPPED_COORDINATE",
+  # this is a fix for the taxonomic backbone
+  # basically, if the parser cant find a perfect match to the submitted species ID, it may fuzzy match the species,
+  # this could lead to a confident GENUS
+  "TAXON_MATCH_HIGHERRANK"
+)
 
 duckdb::duckdb_register_arrow(con, "raw_gbif_table", na_gbif_arrow)
 
