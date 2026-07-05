@@ -63,6 +63,11 @@ fs::dir_create(clean_dir)
 files <- fs::dir_ls(loc, recurse = T, type = "file")
 
 map(files, \(file) {
+  # this tempfile allows us to restart where we left off
+  tempfile <- here::here("scratch", "noram_process", basename(file))
+  if (fs::file_exists(tempfile)) {
+    return()
+  }
   message(paste0("Processing file ", file, " of ", length(files), "..."))
 
   filtered_df <- file %>%
@@ -95,4 +100,10 @@ map(files, \(file) {
       basename_template = paste0("part-", basename(file), "-{i}.parquet")
     )
   }
+  # save the tempfile
+  fs::dir_create(dirname(tempfile))
+  fs::file_create(tempfile)
+
+  rm(filtered_df)
+  gc()
 })
