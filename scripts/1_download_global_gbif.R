@@ -49,11 +49,7 @@ geo_issues <- c(
   "PRESUMED_NEGATED_LONGITUDE",
   "CONTINENT_COUNTRY_MISMATCH",
   "CONTINENT_COORDINATE_MISMATCH",
-  "PRESUMED_SWAPPED_COORDINATE",
-  # this is a fix for the taxonomic backbone
-  # basically, if the parser cant find a perfect match to the submitted species ID, it may fuzzy match the species,
-  # this could lead to a confident GENUS
-  "TAXON_MATCH_HIGHERRANK"
+  "PRESUMED_SWAPPED_COORDINATE"
 )
 
 clean_dir <- here::here("data", "gbif_noram")
