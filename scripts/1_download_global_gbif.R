@@ -3,6 +3,7 @@ library(arrow)
 library(tidyverse)
 library(countrycode)
 library(geodata)
+library(terra)
 library(tidyterra)
 
 loc <- here::here("data", "gbif_global")
@@ -55,10 +56,13 @@ geo_issues <- c(
 clean_dir <- here::here("data", "gbif_noram")
 fs::dir_create(clean_dir)
 
+dones <- fs::dir_ls(here::here("scratch", "noram_process"))
 
 files <- fs::dir_ls(loc, recurse = T, type = "file")
 
-map(files, \(file) {
+files_left <- files[!(basename(files) %in% basename(dones))]
+
+walk(files_left, \(file) {
   # this tempfile allows us to restart where we left off
   tempfile <- here::here("scratch", "noram_process", basename(file))
   if (fs::file_exists(tempfile)) {
@@ -101,5 +105,6 @@ map(files, \(file) {
   fs::file_create(tempfile)
 
   rm(filtered_df)
-  gc()
+  gc(full = TRUE)
+  gc(full = TRUE)
 })
