@@ -108,3 +108,40 @@ walk(files_left, \(file) {
   gc(full = TRUE)
   gc(full = TRUE)
 })
+
+condense_fold_name <- "gbif_noram2"
+
+condensed_dir <- here::here("data", condense_fold_name)
+
+
+l1 <- fs::dir_ls(clean_dir, recurse = F, type = "dir")
+
+walk(l1, \(x) {
+  l2 <- fs::dir_ls(x, type = "dir")
+
+  walk(l2, \(y) {
+    dirname <- str_replace(y, "gbif_noram", condense_fold_name)
+    if (fs::dir_exists(dirname)) {
+      return()
+    }
+    message(paste0("processing", dirname))
+
+    fs::dir_create(dirname)
+
+    files <- fs::dir_ls(y, type = "file")
+    pq <- open_dataset(files)
+    write_dataset(
+      pq,
+      path = dirname,
+      format = "parquet",
+      existing_data_behavior = "overwrite",
+      max_rows_per_file = 1000000,
+      max_partitions = 20000
+    )
+
+    gc(full = T)
+    gc(full = T)
+  })
+  gc(full = T)
+  gc(full = T)
+})

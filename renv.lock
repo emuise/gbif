@@ -80,7 +80,58 @@
       "Repository": "https://bioc.r-universe.dev",
       "NeedsCompilation": "no",
       "Author": "Martin Morgan [aut], Marcel Ramos [ctb], Bioconductor Package Maintainer [ctb, cre]",
-      "Maintainer": "Bioconductor Package Maintainer <maintainer@bioconductor.org>"
+      "Maintainer": "Bioconductor Package Maintainer <maintainer@bioconductor.org>",
+      "RemoteType": "repository",
+      "RemoteUrl": "https://github.com/bioc/BiocVersion",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "252d7c8f03a39a9b83f6de7e9dbf9a5ee6584365"
+    },
+    "CanadaForestAllometry": {
+      "Package": "CanadaForestAllometry",
+      "Version": "0.8.5",
+      "Source": "GitHub",
+      "Type": "Package",
+      "Title": "Allometric models for Canadian forest",
+      "Description": "Tools for estimating tree allometry, biomass, taper, and volume using published equations.",
+      "Author": "Authors@R: c( person(given = \"Piotr\",  family = \"Tompalski\", email = \"piotr.tompalski@NRCan-RNCan.gc.ca\", role = c(\"aut\", \"cre\", \"cph\")), person(given = \"Juha\",  family = \"Metsaranta\", email = \"juha.metsaranta@NRCan-RNCan.gc.ca\",  role = \"ctb\",  comment=\"Contributed initial R implementations of several volume and biomass models, later refactored and integrated into CanadaForestAllometry\"), person(given = \"Vinicius\",  family = \"Manvailer Goncalves\", email = \"vinicius.manvailergoncalves@nrcan-rncan.gc.ca\",  role = \"ctb\"), person(\"Margaret\", \"Penner\", role = \"ctb\", comment = \"Original R implementation of Zakrzewski & Penner (2013) taper model\"), person(\"Mathieu\", \"Fortin\", role = \"ctb\", comment = \"Author of the original Java implementation of the Fortin et al. (2007) Quebec merchantable volume model\"), person(\"Christopher\", \"Hennigar\", role = \"ctb\", comment = \"Author of the original C# implementation of Newfoundland and Labrador volume model\"), person(\"James\", \"Maltman\", role = \"ctb\", comment = \"Contributed initial implementations of several site index models\"), person(paste(\"His Majesty the King in Right of Canada,\", \"as represented by the Minister of Natural Resources Canada\"), role = \"cph\") )",
+      "Maintainer": "Piotr Tompalski <piotr.tompalski@NRCan-RNCan.gc.ca>",
+      "License": "LGPL (>= 3)",
+      "Encoding": "UTF-8",
+      "LazyData": "true",
+      "Depends": [
+        "R (>= 4.1.0)"
+      ],
+      "Imports": [
+        "dplyr",
+        "tibble",
+        "tidyr",
+        "stringr",
+        "cli",
+        "rlang",
+        "purrr",
+        "stats",
+        "stringi",
+        "glue"
+      ],
+      "RoxygenNote": "7.3.3",
+      "Suggests": [
+        "quarto",
+        "ggplot2",
+        "patchwork",
+        "testthat (>= 3.0.0)"
+      ],
+      "Config/testthat/edition": "3",
+      "URL": "https://ptompalski.github.io/CanadaForestAllometry/, https://github.com/ptompalski/CanadaForestAllometry",
+      "BugReports": "https://github.com/ptompalski/CanadaForestAllometry/issues",
+      "Config/Needs/website": "rmarkdown, quarto",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "CanadaForestAllometry",
+      "RemoteUsername": "ptompalski",
+      "RemotePkgRef": "ptompalski/CanadaForestAllometry",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "d8f29cb0de155a3006513769bf363b4787bb9675",
+      "NeedsCompilation": "no"
     },
     "DBI": {
       "Package": "DBI",
@@ -1457,6 +1508,37 @@
       "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
       "Repository": "CRAN"
     },
+    "countrycode": {
+      "Package": "countrycode",
+      "Version": "1.8.0",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Convert Country Names and Country Codes",
+      "Authors@R": "c(person(given = \"Vincent\", family = \"Arel-Bundock\", role = c(\"aut\", \"cre\"), email = \"vincent.arel-bundock@umontreal.ca\", comment = c(ORCID = \"0000-0003-2042-7063\")), person(given = \"CJ\", family = \"Yetman\", role = \"ctb\", email = \"cj@cjyetman.com\", comment = c(ORCID = \"0000-0001-5099-9500\")), person(given = \"Nils\", family = \"Enevoldsen\", role = \"ctb\", email = \"nils@wlonk.com\", comment = c(ORCID = \"0000-0001-7195-4117\")), person(\"Etienne\", \"Bacher\", email = \"etienne.bacher@protonmail.com\", role = \"ctb\", comment = c(ORCID = \"0000-0002-9271-5075\")), person(given = \"Samuel\", family = \"Meichtry\", role = \"ctb\", email = \"samuel.meichtry@bj.admin.ch\", comment = c(ORCID = \"0000-0003-2165-791X\")))",
+      "Description": "Standardize country names, convert them into one of 40 different coding schemes, convert between coding schemes, and assign region descriptors.",
+      "License": "GPL-3",
+      "URL": "https://vincentarelbundock.github.io/countrycode/",
+      "BugReports": "https://github.com/vincentarelbundock/countrycode/issues",
+      "Depends": [
+        "R (>= 2.10)"
+      ],
+      "Suggests": [
+        "altdoc",
+        "eurostat",
+        "testthat",
+        "tibble",
+        "ISOcodes",
+        "utf8"
+      ],
+      "Encoding": "UTF-8",
+      "LazyData": "yes",
+      "LazyLoad": "yes",
+      "RoxygenNote": "7.3.3",
+      "NeedsCompilation": "no",
+      "Author": "Vincent Arel-Bundock [aut, cre] (ORCID: <https://orcid.org/0000-0003-2042-7063>), CJ Yetman [ctb] (ORCID: <https://orcid.org/0000-0001-5099-9500>), Nils Enevoldsen [ctb] (ORCID: <https://orcid.org/0000-0001-7195-4117>), Etienne Bacher [ctb] (ORCID: <https://orcid.org/0000-0002-9271-5075>), Samuel Meichtry [ctb] (ORCID: <https://orcid.org/0000-0003-2165-791X>)",
+      "Maintainer": "Vincent Arel-Bundock <vincent.arel-bundock@umontreal.ca>",
+      "Repository": "CRAN"
+    },
     "cpp11": {
       "Package": "cpp11",
       "Version": "0.5.5",
@@ -1903,15 +1985,14 @@
       "Encoding": "UTF-8",
       "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.2",
+      "Author": "Mark Padgham [aut, cre] (ORCID: <https://orcid.org/0000-0003-2172-5265>)",
+      "Maintainer": "Mark Padgham <mark.padgham@email.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "deposits",
       "RemoteUsername": "mpadge",
       "RemoteRef": "HEAD",
-      "RemoteSha": "b382f06753124b075c8c462a9ec4a3083a830c50",
-      "NeedsCompilation": "no",
-      "Author": "Mark Padgham [aut, cre] (ORCID: <https://orcid.org/0000-0003-2172-5265>)",
-      "Maintainer": "Mark Padgham <mark.padgham@email.com>"
+      "RemoteSha": "b382f06753124b075c8c462a9ec4a3083a830c50"
     },
     "desc": {
       "Package": "desc",
@@ -2471,6 +2552,44 @@
       "Maintainer": "Jennifer Bryan <jenny@posit.co>",
       "Repository": "CRAN"
     },
+    "gbifdb": {
+      "Package": "gbifdb",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Title": "High Performance Interface to 'GBIF'",
+      "Description": "A high performance interface to the Global Biodiversity Information Facility, 'GBIF'.  In contrast to 'rgbif', which can access small subsets of 'GBIF' data through web-based queries to a central server, 'gbifdb' provides enhanced performance for R users performing large-scale analyses on servers and cloud computing providers, providing full support for arbitrary 'SQL' or 'dplyr' operations on the complete 'GBIF' data tables (now over 1 billion records, and over a terabyte in size). 'gbifdb' accesses a copy of the 'GBIF' data in 'parquet' format, which is already readily available in commercial computing clouds such as the Amazon Open Data portal and the Microsoft Planetary Computer, or can be  accessed directly without downloading, or downloaded to any server with suitable bandwidth and storage space. The high-performance techniques for local and remote access  are described in <https://duckdb.org/why_duckdb> and <https://arrow.apache.org/docs/r/articles/fs.html> respectively.",
+      "Authors@R": "c( person(\"Carl\", \"Boettiger\", , \"cboettig@gmail.com\", c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-1642-628X\")) )",
+      "License": "Apache License (>= 2)",
+      "Encoding": "UTF-8",
+      "ByteCompile": "true",
+      "Depends": [
+        "R (>= 4.0)"
+      ],
+      "Imports": [
+        "arrow (>= 8.0.0)",
+        "dplyr",
+        "duckdbfs"
+      ],
+      "Suggests": [
+        "spelling",
+        "dbplyr",
+        "testthat (>= 3.0.0)",
+        "covr",
+        "knitr",
+        "rmarkdown",
+        "minioclient"
+      ],
+      "URL": "https://docs.ropensci.org/gbifdb/, https://github.com/ropensci/gbifdb",
+      "BugReports": "https://github.com/ropensci/gbifdb",
+      "Language": "en-US",
+      "RoxygenNote": "7.2.3",
+      "Config/testthat/edition": "3",
+      "VignetteBuilder": "knitr",
+      "NeedsCompilation": "no",
+      "Author": "Carl Boettiger [aut, cre] (<https://orcid.org/0000-0002-1642-628X>)",
+      "Maintainer": "Carl Boettiger <cboettig@gmail.com>",
+      "Repository": "CRAN"
+    },
     "generics": {
       "Package": "generics",
       "Version": "0.1.4",
@@ -2536,6 +2655,37 @@
       "NeedsCompilation": "yes",
       "Author": "Dewey Dunnington [aut, cre] (ORCID: <https://orcid.org/0000-0002-9415-4582>), Anthony North [ctb], Apache Software Foundation [cph], Ulf Adams [cph], Daniel Lemire [cph], Joao Paulo Magalhaes [cph]",
       "Maintainer": "Dewey Dunnington <dewey@dunnington.ca>",
+      "Repository": "CRAN"
+    },
+    "geodata": {
+      "Package": "geodata",
+      "Version": "0.6-9",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Access Geographic Data",
+      "Date": "2026-04-03",
+      "Depends": [
+        "R (>= 3.5.0)",
+        "terra (>= 1.6.41)"
+      ],
+      "Imports": [
+        "rappdirs"
+      ],
+      "Suggests": [
+        "jsonlite",
+        "R.utils",
+        "httr",
+        "archive"
+      ],
+      "Encoding": "UTF-8",
+      "Maintainer": "Robert J. Hijmans <r.hijmans@gmail.com>",
+      "Description": "Functions for downloading of geographic data for use in spatial analysis and mapping. The package facilitates access to climate, crops, elevation, land use, soil, species occurrence, accessibility, administrative boundaries and other data.",
+      "License": "GPL (>= 3)",
+      "URL": "https://rspatial.github.io/geodata/",
+      "BugReports": "https://github.com/rspatial/geodata/issues/",
+      "Authors@R": "c( person(\"Robert J.\", \"Hijmans\", role=c(\"cre\", \"aut\"),   email=\"r.hijmans@gmail.com\", comment=c(ORCID=\"0000-0001-5872-2872\")),\t\t\t person(\"Márcia\", \"Barbosa\", role=\"ctb\", comment=c(ORCID=\"0000-0001-8972-7713\")), person(\"Aniruddha\", \"Ghosh\", role=\"ctb\"), person(\"Alex\", \"Mandel\", role=\"ctb\"))",
+      "NeedsCompilation": "no",
+      "Author": "Robert J. Hijmans [cre, aut] (ORCID: <https://orcid.org/0000-0001-5872-2872>), Márcia Barbosa [ctb] (ORCID: <https://orcid.org/0000-0001-8972-7713>), Aniruddha Ghosh [ctb], Alex Mandel [ctb]",
       "Repository": "CRAN"
     },
     "ggplot2": {
@@ -3916,16 +4066,15 @@
       ],
       "URL": "https://github.com/emuise/muiselib2",
       "BugReports": "https://github.com/emuise/muiselib2/issues",
+      "Author": "Evan Muise [aut, cre]",
+      "Maintainer": "Evan Muise <evanmuise@gmail.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "muiselib2",
       "RemoteUsername": "emuise",
       "RemotePkgRef": "emuise/muiselib2",
       "RemoteRef": "HEAD",
-      "RemoteSha": "a5fa2c7ecb25d5d6c015a5197d253ab1ec748476",
-      "NeedsCompilation": "no",
-      "Author": "Evan Muise [aut, cre]",
-      "Maintainer": "Evan Muise <evanmuise@gmail.com>"
+      "RemoteSha": "a5fa2c7ecb25d5d6c015a5197d253ab1ec748476"
     },
     "nanoarrow": {
       "Package": "nanoarrow",
