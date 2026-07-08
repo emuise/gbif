@@ -52,7 +52,7 @@ geo_issues <- c(
   "CONTINENT_COORDINATE_MISMATCH",
   "PRESUMED_SWAPPED_COORDINATE"
 )
-
+fs::dir_create("scratch")
 clean_dir <- here::here("data", "gbif_noram")
 fs::dir_create(clean_dir)
 
