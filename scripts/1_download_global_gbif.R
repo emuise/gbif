@@ -52,11 +52,14 @@ geo_issues <- c(
   "CONTINENT_COORDINATE_MISMATCH",
   "PRESUMED_SWAPPED_COORDINATE"
 )
-fs::dir_create("scratch")
+
+scratch_dir <- here::here("scratch", "noram_process")
+
+fs::dir_create(scratch_dir)
 clean_dir <- here::here("data", "gbif_noram")
 fs::dir_create(clean_dir)
 
-dones <- fs::dir_ls(here::here("scratch", "noram_process"))
+dones <- fs::dir_ls(scratch_dir)
 
 files <- fs::dir_ls(loc, recurse = T, type = "file")
 
@@ -142,6 +145,4 @@ walk(l1, \(x) {
     gc(full = T)
     gc(full = T)
   })
-  gc(full = T)
-  gc(full = T)
 })
