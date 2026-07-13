@@ -5,6 +5,8 @@ library(countrycode)
 library(geodata)
 library(terra)
 library(tidyterra)
+library(sf) # fast intersect
+library(geos) # faster intersect
 
 loc <- here::here("data", "gbif_global")
 
@@ -119,6 +121,7 @@ condensed_dir <- here::here("data", condense_fold_name)
 
 l1 <- fs::dir_ls(clean_dir, recurse = F, type = "dir")
 
+# condense the parquet files so they arent overly fragmented
 walk(l1, \(x) {
   l2 <- fs::dir_ls(x, type = "dir")
 
@@ -146,3 +149,88 @@ walk(l1, \(x) {
     gc(full = T)
   })
 })
+
+# now that the files are condesned, listing them is relaitvely quick
+# we actually want to operate on a file bases, and can condense the output at the end
+# so basically, birds are going to be unable to process all at once
+# i.e. geese have > 100 million observations
+# every other family is /reasonably large/
+# and can be done at once
+
+# operate on condensed files
+c_files <- fs::dir_ls(condensed_dir, recurse = T, type = "file")
+
+# this is the tester parquet file!
+# each iterate needs to efficiently work on a 1 million row file
+# this is one of them
+# bees!
+x <- "E:/rprojects/gbif/data/gbif_noram2/kingdom=Animalia/family=Apidae/part-0.parquet"
+
+bcb <- bcmaps::bc_bound_hres() %>%
+  vect()
+
+bcb_sf <- bcb %>%
+  st_as_sf()
+
+bcb_bbox <- bcb %>%
+  project("epsg:4326") %>%
+  ext()
+
+spatcount_dir <- here::here("data", "spatial_counts")
+fs::dir_create(spatcount_dir)
+
+walk(c_files, \(x) {
+  kingdom <- dirname(x) %>% dirname() %>% basename() %>% str_remove("kingdom=")
+  family  <- dirname(x) %>% basename() %>% str_remove("family=")
+  
+  savename <- here::here(spatcount_dir, glue::glue("{kingdom}_{family}_{basename(x)}"))
+  if (file.exists(savename)) return()
+  
+  message(paste("Counting", x))
+  
+  df <- arrow::open_dataset(x) %>%
+    mutate(kingdom = kingdom, family = family) %>%
+    select(kingdom, phylum, class, order, family, genus, species,
+           decimallatitude, decimallongitude) %>%
+    collect()
+  # index of if points are in bounding box
+  in_bbox <- df$decimallatitude  <= bcb_bbox$ymax &
+             df$decimallatitude  >= bcb_bbox$ymin &
+             df$decimallongitude <= bcb_bbox$xmax &
+             df$decimallongitude >= bcb_bbox$xmin
+  
+  # static integer column
+  df$in_bc <- 0L
+  
+  # if any are in the bounding box, do a spatial intersect to see if they are in the BC polygon
+  if (any(in_bbox)) {
+
+    # sf is fastest for these intersections, keeping the polygon in it's normal crs is also fastest
+    # so we project the points from wgs84 into bc albers for speed
+    # we dont need to reproject out or anything
+    spat <- vect(
+      df[in_bbox, ],
+      geom = c("decimallongitude", "decimallatitude"),
+      crs = "epsg:4326"
+    ) %>%
+      project(bcb) %>%
+      st_as_sf()
+
+    inters <- st_intersects(spat, bcb_sf, sparse = T)
+
+    # if number of intersects greater than 0, it is within the bounding box of bc
+    df$in_bc[in_bbox] <- as.integer(lengths(inters) > 0)
+  }
+
+  # group by summarize if it is inside or outside bc
+  inout <- df %>%
+    group_by(kingdom, phylum, class, order, family, genus, species) %>%
+    summarize(
+      n_bc    = sum(in_bc == 1L),
+      n_notbc = sum(in_bc == 0L),
+      n_total = n(),
+      .groups = "drop"
+    )
+  
+  arrow::write_parquet(inout, savename)
+}, .progress = TRUE)
