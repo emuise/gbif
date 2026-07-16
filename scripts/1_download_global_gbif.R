@@ -118,37 +118,72 @@ condense_fold_name <- "gbif_noram2"
 
 condensed_dir <- here::here("data", condense_fold_name)
 
+run_compaction <- function() {
+  compact_flag <- here::here("flags", "compaction_done.txt")
+  
+  # Guard clause: stop if already done
+  if (fs::file_exists(compact_flag)) {
+    message("Compaction already marked as complete. Skipping.")
+    return(invisible(NULL))
+  }
 
-l1 <- fs::dir_ls(clean_dir, recurse = F, type = "dir")
+  l1 <- fs::dir_ls(clean_dir, recurse = FALSE, type = "dir")
 
-# condense the parquet files so they arent overly fragmented
-walk(l1, \(x) {
-  l2 <- fs::dir_ls(x, type = "dir")
-
-  walk(l2, \(y) {
-    dirname <- str_replace(y, "gbif_noram", condense_fold_name)
-    if (fs::dir_exists(dirname)) {
-      return()
-    }
-    message(paste0("processing", dirname))
-
-    fs::dir_create(dirname)
-
-    files <- fs::dir_ls(y, type = "file")
-    pq <- open_dataset(files)
-    write_dataset(
-      pq,
-      path = dirname,
-      format = "parquet",
-      existing_data_behavior = "overwrite",
-      max_rows_per_file = 1000000,
-      max_partitions = 20000
-    )
-
-    gc(full = T)
-    gc(full = T)
+  message("condensing directory")
+  walk(l1, \(x) {
+    l2 <- fs::dir_ls(x, type = "dir")
+    walk(l2, \(y) {
+      dirname <- str_replace(y, "gbif_noram", condense_fold_name)
+      if (fs::dir_exists(dirname)) return()
+      
+      message(paste0("processing ", dirname))
+      fs::dir_create(dirname)
+      
+      files <- fs::dir_ls(y, type = "file")
+      pq <- open_dataset(files)
+      write_dataset(
+        pq,
+        path = dirname,
+        format = "parquet",
+        existing_data_behavior = "overwrite",
+        max_rows_per_file = 1000000,
+        max_partitions = 20000
+      )
+      gc(full = TRUE)
+    })
   })
-})
+
+  gc(full = TRUE)
+  # walk back through to delete the files in the directories
+
+  path <- normalizePath(clean_dir, mustWork = FALSE)
+  
+  if (.Platform$OS.type == "windows") {
+    # /s removes all subdirectories and files; /q runs in quiet mode (no prompt)
+    system(sprintf('cmd.exe /c rmdir /s /q "%s"', path), show.output.on.console = FALSE)
+  } else {
+    # Unix/macOS equivalent
+    system(sprintf('rm -rf "%s"', path))
+  }
+
+  # message("files condensed, cleaning up uncompacted files")
+  # walk(l1, \(x) {
+  #   l2 <- fs::dir_ls(x, type = "dir")
+  #   walk(l2, \(y) {
+  #     fs::dir_delete(y)
+    
+  #     gc(full = TRUE)
+  #   })
+  # })
+  message("moving condensed files to clean dir")
+  fs::dir_delete(clean_dir)
+  fs::file_move(condensed_dir, clean_dir)
+  fs::dir_create(dirname(compact_flag))
+  fs::file_create(compact_flag)
+}
+
+run_compaction()
+
 
 # now that the files are condesned, listing them is relaitvely quick
 # we actually want to operate on a file bases, and can condense the output at the end
@@ -158,13 +193,7 @@ walk(l1, \(x) {
 # and can be done at once
 
 # operate on condensed files
-c_files <- fs::dir_ls(condensed_dir, recurse = T, type = "file")
-
-# this is the tester parquet file!
-# each iterate needs to efficiently work on a 1 million row file
-# this is one of them
-# bees!
-x <- "E:/rprojects/gbif/data/gbif_noram2/kingdom=Animalia/family=Apidae/part-0.parquet"
+c_files <- fs::dir_ls(clean_dir, recurse = T, type = "file")
 
 bcb <- bcmaps::bc_bound_hres() %>%
   vect()
@@ -179,58 +208,78 @@ bcb_bbox <- bcb %>%
 spatcount_dir <- here::here("data", "spatial_counts")
 fs::dir_create(spatcount_dir)
 
-walk(c_files, \(x) {
-  kingdom <- dirname(x) %>% dirname() %>% basename() %>% str_remove("kingdom=")
-  family  <- dirname(x) %>% basename() %>% str_remove("family=")
-  
-  savename <- here::here(spatcount_dir, glue::glue("{kingdom}_{family}_{basename(x)}"))
-  if (file.exists(savename)) return()
-  
-  message(paste("Counting", x))
-  
-  df <- arrow::open_dataset(x) %>%
-    mutate(kingdom = kingdom, family = family) %>%
-    select(kingdom, phylum, class, order, family, genus, species,
-           decimallatitude, decimallongitude) %>%
-    collect()
-  # index of if points are in bounding box
-  in_bbox <- df$decimallatitude  <= bcb_bbox$ymax &
-             df$decimallatitude  >= bcb_bbox$ymin &
-             df$decimallongitude <= bcb_bbox$xmax &
-             df$decimallongitude >= bcb_bbox$xmin
-  
-  # static integer column
-  df$in_bc <- 0L
-  
-  # if any are in the bounding box, do a spatial intersect to see if they are in the BC polygon
-  if (any(in_bbox)) {
+walk(
+  c_files,
+  \(x) {
+    kingdom <- dirname(x) %>%
+      dirname() %>%
+      basename() %>%
+      str_remove("kingdom=")
+    family <- dirname(x) %>% basename() %>% str_remove("family=")
 
-    # sf is fastest for these intersections, keeping the polygon in it's normal crs is also fastest
-    # so we project the points from wgs84 into bc albers for speed
-    # we dont need to reproject out or anything
-    spat <- vect(
-      df[in_bbox, ],
-      geom = c("decimallongitude", "decimallatitude"),
-      crs = "epsg:4326"
-    ) %>%
-      project(bcb) %>%
-      st_as_sf()
-
-    inters <- st_intersects(spat, bcb_sf, sparse = T)
-
-    # if number of intersects greater than 0, it is within the bounding box of bc
-    df$in_bc[in_bbox] <- as.integer(lengths(inters) > 0)
-  }
-
-  # group by summarize if it is inside or outside bc
-  inout <- df %>%
-    group_by(kingdom, phylum, class, order, family, genus, species) %>%
-    summarize(
-      n_bc    = sum(in_bc == 1L),
-      n_notbc = sum(in_bc == 0L),
-      n_total = n(),
-      .groups = "drop"
+    savename <- here::here(
+      spatcount_dir,
+      glue::glue("{kingdom}_{family}_{basename(x)}")
     )
-  
-  arrow::write_parquet(inout, savename)
-}, .progress = TRUE)
+    if (file.exists(savename)) {
+      return()
+    }
+
+    message(paste("Counting", x))
+
+    df <- arrow::open_dataset(x) %>%
+      mutate(kingdom = kingdom, family = family) %>%
+      select(
+        kingdom,
+        phylum,
+        class,
+        order,
+        family,
+        genus,
+        species,
+        decimallatitude,
+        decimallongitude
+      ) %>%
+      collect()
+    # index of if points are in bounding box
+    in_bbox <- df$decimallatitude <= bcb_bbox$ymax &
+      df$decimallatitude >= bcb_bbox$ymin &
+      df$decimallongitude <= bcb_bbox$xmax &
+      df$decimallongitude >= bcb_bbox$xmin
+
+    # static integer column
+    df$in_bc <- 0L
+
+    # if any are in the bounding box, do a spatial intersect to see if they are in the BC polygon
+    if (any(in_bbox)) {
+      # sf is fastest for these intersections, keeping the polygon in it's normal crs is also fastest
+      # so we project the points from wgs84 into bc albers for speed
+      # we dont need to reproject out or anything
+      spat <- vect(
+        df[in_bbox, ],
+        geom = c("decimallongitude", "decimallatitude"),
+        crs = "epsg:4326"
+      ) %>%
+        project(bcb) %>%
+        st_as_sf()
+
+      inters <- st_intersects(spat, bcb_sf, sparse = T)
+
+      # if number of intersects greater than 0, it is within the bounding box of bc
+      df$in_bc[in_bbox] <- as.integer(lengths(inters) > 0)
+    }
+
+    # group by summarize if it is inside or outside bc
+    inout <- df %>%
+      group_by(kingdom, phylum, class, order, family, genus, species) %>%
+      summarize(
+        n_bc = sum(in_bc == 1L),
+        n_notbc = sum(in_bc == 0L),
+        n_total = n(),
+        .groups = "drop"
+      )
+
+    arrow::write_parquet(inout, savename)
+  },
+  .progress = TRUE
+)
