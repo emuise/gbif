@@ -6,14 +6,13 @@ library(geodata)
 library(terra)
 library(tidyterra)
 library(sf) # fast intersect
-library(geos) # faster intersect
 
 loc <- here::here("data", "gbif_global")
 
 ## download ALL gbif data
 # pak::pak("minioclient")
 # minioclient::install_mc()
-# rerun download code until it is done
+# rerun download code unt il it is done
 # gbifdb::gbif_download()
 
 ## filter gbif data to north america
@@ -120,7 +119,7 @@ condensed_dir <- here::here("data", condense_fold_name)
 
 run_compaction <- function() {
   compact_flag <- here::here("flags", "compaction_done.txt")
-  
+
   # Guard clause: stop if already done
   if (fs::file_exists(compact_flag)) {
     message("Compaction already marked as complete. Skipping.")
@@ -134,11 +133,13 @@ run_compaction <- function() {
     l2 <- fs::dir_ls(x, type = "dir")
     walk(l2, \(y) {
       dirname <- str_replace(y, "gbif_noram", condense_fold_name)
-      if (fs::dir_exists(dirname)) return()
-      
+      if (fs::dir_exists(dirname)) {
+        return()
+      }
+
       message(paste0("processing ", dirname))
       fs::dir_create(dirname)
-      
+
       files <- fs::dir_ls(y, type = "file")
       pq <- open_dataset(files)
       write_dataset(
@@ -156,22 +157,25 @@ run_compaction <- function() {
   gc(full = TRUE)
   # walk back through to delete the files in the directories
 
+  message("files condensed, cleaning up uncompacted files")
   path <- normalizePath(clean_dir, mustWork = FALSE)
-  
+
   if (.Platform$OS.type == "windows") {
     # /s removes all subdirectories and files; /q runs in quiet mode (no prompt)
-    system(sprintf('cmd.exe /c rmdir /s /q "%s"', path), show.output.on.console = FALSE)
+    system(
+      sprintf('cmd.exe /c rmdir /s /q "%s"', path),
+      show.output.on.console = FALSE
+    )
   } else {
     # Unix/macOS equivalent
     system(sprintf('rm -rf "%s"', path))
   }
 
-  # message("files condensed, cleaning up uncompacted files")
   # walk(l1, \(x) {
   #   l2 <- fs::dir_ls(x, type = "dir")
   #   walk(l2, \(y) {
   #     fs::dir_delete(y)
-    
+
   #     gc(full = TRUE)
   #   })
   # })
