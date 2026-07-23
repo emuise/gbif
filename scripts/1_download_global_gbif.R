@@ -7,31 +7,46 @@ library(terra)
 library(tidyterra)
 library(sf) # fast intersect
 
-loc <- here::here("data", "gbif_global")
+raw_gbif_loc <- here::here("data", "gbif_global")
 
-## download ALL gbif data
-# pak::pak("minioclient")
-# minioclient::install_mc()
-# rerun download code unt il it is done
-# gbifdb::gbif_download()
+scratch_dir <- here::here("scratch", "noram_process")
+clean_dir <- here::here("data", "gbif_noram")
 
-## filter gbif data to north america
-# get north american countries
+fs::dir_create(scratch_dir)
+fs::dir_create(clean_dir)
+
+run_download <- function() {
+  download_flag <- here::here("flags", "download_done.txt")
+
+  if (fs::file_exists(download_flag)) {
+    message("Download already marked as complete. Skipping.")
+    return(invisible(NULL))
+  }
+
+  message("Starting GBIF download...")
+  # pak::pak("minioclient")
+  # minioclient::install_mc()
+  gbifdb::gbif_download(dir = raw_gbif_loc)
+
+  fs::dir_create(dirname(download_flag))
+  fs::file_create(download_flag)
+}
+
+run_download()
+
+
 noram <- vect(
   "https://github.com/gbif/continents/raw/master/continent_cookie_cutter.gpkg"
 ) %>%
-  filter(continent_part == "north_america_east") # west is the aleutian islands, not a huge deal to cut them
+  filter(continent_part == "north_america_east")
 
 world <- geodata::world(path = here::here("data", "shps")) %>%
   project(noram)
 
 na_countries <- intersect(world, noram)
-
 na_bbox <- ext(na_countries)
 
-# north american country codes, also converted to the proper gbif format
 na_cc <- na_countries %>% pull(GID_0)
-
 na_cc_iso2c <- countrycode(na_cc, origin = "iso3c", destination = "iso2c")
 
 ymin <- na_bbox$ymin
@@ -54,64 +69,76 @@ geo_issues <- c(
   "PRESUMED_SWAPPED_COORDINATE"
 )
 
-scratch_dir <- here::here("scratch", "noram_process")
 
-fs::dir_create(scratch_dir)
-clean_dir <- here::here("data", "gbif_noram")
-fs::dir_create(clean_dir)
 
-dones <- fs::dir_ls(scratch_dir)
+run_split <- function() {
+  split_flag <- here::here("flags", "split_done.txt")
 
-files <- fs::dir_ls(loc, recurse = T, type = "file")
-
-files_left <- files[!(basename(files) %in% basename(dones))]
-
-walk(files_left, \(file) {
-  # this tempfile allows us to restart where we left off
-  tempfile <- here::here("scratch", "noram_process", basename(file))
-  if (fs::file_exists(tempfile)) {
-    return()
+  if (fs::file_exists(split_flag)) {
+    message("Split already marked as complete. Skipping.")
+    return(invisible(NULL))
   }
-  message(paste0("Processing file ", file, " of ", length(files), "..."))
 
-  filtered_df <- file %>%
-    open_dataset() %>%
-    filter(
-      occurrencestatus == "PRESENT",
-      !basisofrecord %in% c("FOSSIL_SPECIMEN", "LIVING_SPECIMEN"),
-      !is.na(species),
-      !is.na(decimallatitude),
-      !is.na(decimallongitude),
-      countrycode %in% na_cc_iso2c | is.na(countrycode),
-      decimallatitude < ymax,
-      decimallatitude > ymin,
-      decimallongitude < xmax,
-      decimallongitude > xmin
-    ) %>%
-    collect()
+  dones <- fs::dir_ls(scratch_dir)
+  files <- fs::dir_ls(raw_gbif_loc, recurse = TRUE, type = "file")
+  files_left <- files[!(basename(files) %in% basename(dones))]
 
-  filtered_df <- filtered_df %>%
-    filter(!purrr::map_lgl(issue, ~ any(.x$array_element %in% geo_issues)))
+  walk(files_left, \(file) {
+    tempfile <- here::here("scratch", "noram_process", basename(file))
+    if (fs::file_exists(tempfile)) {
+      return()
+    }
+    message(paste0("Processing file ", file, " of ", length(files), "..."))
 
-  if (nrow(filtered_df) > 0) {
-    write_dataset(
-      filtered_df,
-      path = clean_dir,
-      format = "parquet",
-      partitioning = c("kingdom", "family"),
-      existing_data_behavior = "overwrite",
-      max_partitions = 20000,
-      basename_template = paste0("part-", basename(file), "-{i}.parquet")
-    )
+    filtered_df <- file %>%
+      open_dataset() %>%
+      filter(
+        occurrencestatus == "PRESENT",
+        !basisofrecord %in% c("FOSSIL_SPECIMEN", "LIVING_SPECIMEN"),
+        !is.na(species),
+        !is.na(decimallatitude),
+        !is.na(decimallongitude),
+        countrycode %in% na_cc_iso2c | is.na(countrycode),
+        decimallatitude < ymax,
+        decimallatitude > ymin,
+        decimallongitude < xmax,
+        decimallongitude > xmin
+      ) %>%
+      collect()
+
+    filtered_df <- filtered_df %>%
+      filter(!purrr::map_lgl(issue, ~ any(.x$array_element %in% geo_issues)))
+
+    if (nrow(filtered_df) > 0) {
+      write_dataset(
+        filtered_df,
+        path = clean_dir,
+        format = "parquet",
+        partitioning = c("kingdom", "family"),
+        existing_data_behavior = "overwrite",
+        max_partitions = 20000,
+        basename_template = paste0("part-", basename(file), "-{i}.parquet")
+      )
+    }
+
+    fs::dir_create(dirname(tempfile))
+    fs::file_create(tempfile)
+
+    rm(filtered_df)
+    gc(full = TRUE)
+    gc(full = TRUE)
+  })
+
+  if (fs::dir_exists(raw_gbif_loc)) {
+    fs::dir_delete(raw_gbif_loc)
   }
-  # save the tempfile
-  fs::dir_create(dirname(tempfile))
-  fs::file_create(tempfile)
 
-  rm(filtered_df)
-  gc(full = TRUE)
-  gc(full = TRUE)
-})
+  fs::dir_create(dirname(split_flag))
+  fs::file_create(split_flag)
+}
+
+run_split()
+
 
 condense_fold_name <- "gbif_noram2"
 
@@ -134,6 +161,8 @@ run_compaction <- function() {
     walk(l2, \(y) {
       dirname <- str_replace(y, "gbif_noram", condense_fold_name)
       if (fs::dir_exists(dirname)) {
+        message("deleting completed dir ", y)
+        fs::dir_delete(y)
         return()
       }
 
@@ -150,6 +179,8 @@ run_compaction <- function() {
         max_rows_per_file = 1000000,
         max_partitions = 20000
       )
+      message("deleting completed dir ", y)
+      fs::dir_delete(y)
       gc(full = TRUE)
     })
   })
@@ -171,14 +202,6 @@ run_compaction <- function() {
     system(sprintf('rm -rf "%s"', path))
   }
 
-  # walk(l1, \(x) {
-  #   l2 <- fs::dir_ls(x, type = "dir")
-  #   walk(l2, \(y) {
-  #     fs::dir_delete(y)
-
-  #     gc(full = TRUE)
-  #   })
-  # })
   message("moving condensed files to clean dir")
   fs::dir_delete(clean_dir)
   fs::file_move(condensed_dir, clean_dir)
