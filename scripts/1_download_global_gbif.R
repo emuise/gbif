@@ -59,6 +59,10 @@ run_download <- function(max_retries = Inf) {
 
 run_download(max_retries = 30)
 
+gbif_files <- fs::dir_ls(raw_gbif_loc, recurse = T, type = "file") 
+
+
+fs::file_delete(gbif_files[is.na(as.numeric(basename(gbif_files)))])
 
 noram <- vect(
   "https://github.com/gbif/continents/raw/master/continent_cookie_cutter.gpkg"
@@ -93,75 +97,6 @@ geo_issues <- c(
   "CONTINENT_COORDINATE_MISMATCH",
   "PRESUMED_SWAPPED_COORDINATE"
 )
-
-
-run_split <- function() {
-  split_flag <- here::here("flags", "split_done.txt")
-
-  if (fs::file_exists(split_flag)) {
-    message("Split already marked as complete. Skipping.")
-    return(invisible(NULL))
-  }
-
-  dones <- fs::dir_ls(scratch_dir)
-  files <- fs::dir_ls(raw_gbif_loc, recurse = TRUE, type = "file")
-  files_left <- files[!(basename(files) %in% basename(dones))]
-
-  walk(files_left, \(file) {
-    tempfile <- here::here("scratch", "noram_process", basename(file))
-    if (fs::file_exists(tempfile)) {
-      return()
-    }
-    message(paste0("Processing file ", file, " of ", length(files), "..."))
-
-    filtered_df <- file %>%
-      open_dataset() %>%
-      filter(
-        occurrencestatus == "PRESENT",
-        !basisofrecord %in% c("FOSSIL_SPECIMEN", "LIVING_SPECIMEN"),
-        !is.na(species),
-        !is.na(decimallatitude),
-        !is.na(decimallongitude),
-        countrycode %in% na_cc_iso2c | is.na(countrycode),
-        decimallatitude < ymax,
-        decimallatitude > ymin,
-        decimallongitude < xmax,
-        decimallongitude > xmin
-      ) %>%
-      collect()
-
-    filtered_df <- filtered_df %>%
-      filter(!purrr::map_lgl(issue, ~ any(.x$array_element %in% geo_issues)))
-
-    if (nrow(filtered_df) > 0) {
-      write_dataset(
-        filtered_df,
-        path = clean_dir,
-        format = "parquet",
-        partitioning = c("kingdom", "family"),
-        existing_data_behavior = "overwrite",
-        max_partitions = 20000,
-        basename_template = paste0("part-", basename(file), "-{i}.parquet")
-      )
-    }
-
-    fs::dir_create(dirname(tempfile))
-    fs::file_create(tempfile)
-
-    rm(filtered_df)
-    gc(full = TRUE)
-    gc(full = TRUE)
-  })
-
-  if (fs::dir_exists(raw_gbif_loc)) {
-    fs::dir_delete(raw_gbif_loc)
-  }
-
-  fs::dir_create(dirname(split_flag))
-  fs::file_create(split_flag)
-}
-
-# run_split()
 
 run_split_grouped <- function() {
   split_flag <- here::here("flags", "split_done.txt")
