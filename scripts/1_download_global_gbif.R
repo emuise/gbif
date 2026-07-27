@@ -22,9 +22,6 @@ fs::dir_create(scratch_dir)
 fs::dir_create(clean_dir)
 
 run_download <- function(max_retries = Inf) {
-  options(
-    "minioclient.dir" = "C:/Users/evanm/AppData/Roaming/R/data/R/minioclient"
-  )
   download_flag <- here::here("flags", "download_done.txt")
 
   if (fs::file_exists(download_flag)) {
