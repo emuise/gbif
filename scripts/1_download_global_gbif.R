@@ -59,7 +59,7 @@ run_download <- function(max_retries = Inf) {
 
 run_download(max_retries = 30)
 
-gbif_files <- fs::dir_ls(raw_gbif_loc, recurse = T, type = "file") 
+gbif_files <- fs::dir_ls(raw_gbif_loc, recurse = T, type = "file")
 
 
 fs::file_delete(gbif_files[is.na(as.numeric(basename(gbif_files)))])
@@ -129,14 +129,17 @@ run_split_grouped <- function() {
 
     template <- glue::glue("{min(nums)}-{max(nums)}")
 
-    message(glue::glue("\n=== Processing Files [{template}] (Max: {glob_max}) ==="))
-
+    message(glue::glue(
+      "\n=== Processing Files [{template}] (Max: {glob_max}) ==="
+    ))
 
     df <- remaining %>%
-      open_dataset() 
+      open_dataset()
 
-    message(glue::glue("  │ Raw records loaded : {format(nrow(df), big.mark = ',')}"))
-    
+    message(glue::glue(
+      "  │ Raw records loaded : {format(nrow(df), big.mark = ',')}"
+    ))
+
     filtered_df <- df %>%
       filter(
         occurrencestatus == "PRESENT",
@@ -152,12 +155,16 @@ run_split_grouped <- function() {
       ) %>%
       collect()
 
-    message(glue::glue("  │ Post spatial filter: {format(nrow(filtered_df), big.mark = ',')}"))
+    message(glue::glue(
+      "  │ Post spatial filter: {format(nrow(filtered_df), big.mark = ',')}"
+    ))
 
     filtered_df <- filtered_df %>%
       filter(!purrr::map_lgl(issue, ~ any(.x$array_element %in% geo_issues)))
 
-    message(glue::glue("  │ Post issue filter  : {format(nrow(filtered_df), big.mark = ',')}"))
+    message(glue::glue(
+      "  │ Post issue filter  : {format(nrow(filtered_df), big.mark = ',')}"
+    ))
 
     if (nrow(filtered_df) > 0) {
       message("  └─ Saving Parquet... ")
@@ -181,16 +188,16 @@ run_split_grouped <- function() {
     gc(full = TRUE)
     gc(full = TRUE)
   })
-
-  if (fs::dir_exists(raw_gbif_loc)) {
-    fs::dir_delete(raw_gbif_loc)
-  }
-
-  fs::dir_create(dirname(split_flag))
-  fs::file_create(split_flag)
 }
 
 run_split_grouped()
+
+if (fs::dir_exists(raw_gbif_loc)) {
+  fs::dir_delete(raw_gbif_loc)
+}
+
+fs::dir_create(dirname(split_flag))
+fs::file_create(split_flag)
 
 
 condense_fold_name <- "gbif_noram2"
