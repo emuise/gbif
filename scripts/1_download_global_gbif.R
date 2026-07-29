@@ -9,12 +9,6 @@ library(sf) # fast intersect
 
 raw_gbif_loc <- here::here("data", "gbif_global")
 
-egg <- raw_gbif_loc %>%
-  fs::dir_ls(recurse = T, type = "file")
-
-egg[nchar(egg) == 135] %>%
-  fs::file_delete()
-
 scratch_dir <- here::here("scratch", "noram_process")
 clean_dir <- here::here("data", "gbif_noram")
 
@@ -286,8 +280,12 @@ walk(
         n_notbc = sum(in_bc == 0L),
         n_total = n(),
         .groups = "drop"
-      )
+      ) %>%
+      mutate(file = x)
 
     arrow::write_parquet(inout, savename)
   }
 )
+
+
+counts_wfiles <- arrow::read_parquet(spatcount_dir)
