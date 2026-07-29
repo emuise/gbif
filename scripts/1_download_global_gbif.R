@@ -223,8 +223,9 @@ spatcount_dir <- here::here("data", "spatial_counts")
 fs::dir_create(spatcount_dir)
 
 walk(
-  c_files,
-  \(x) {
+  1:length(c_files),
+  \(n) {
+    x <- c_files[n]
     savename <- here::here(
       spatcount_dir,
       glue::glue("{basename(x)}")
@@ -233,7 +234,7 @@ walk(
       return()
     }
 
-    message(paste("Counting", x))
+    message(glue::glue("[{n}/{length(c_files)}]: {basename(x)}"))
 
     df <- arrow::open_dataset(x) %>%
       mutate(kingdom = kingdom, family = family) %>%
@@ -288,6 +289,5 @@ walk(
       )
 
     arrow::write_parquet(inout, savename)
-  },
-  .progress = TRUE
+  }
 )
