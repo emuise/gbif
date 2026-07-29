@@ -115,7 +115,7 @@ run_split_grouped <- function() {
   groups <- split(files_left, ceiling(seq_along(files_left) / 10))
 
   walk(groups, \(group) {
-    tempfiles <- here::here("scratch", "noram_process", basename(group))
+    tempfiles <- here::here("flags", "noram_process", basename(group))
 
     remaining <- group[!fs::file_exists(tempfiles)]
 
@@ -199,79 +199,6 @@ if (fs::dir_exists(raw_gbif_loc)) {
 fs::dir_create(dirname(split_flag))
 fs::file_create(split_flag)
 
-
-condense_fold_name <- "gbif_noram2"
-
-condensed_dir <- here::here("data", condense_fold_name)
-
-run_compaction <- function() {
-  compact_flag <- here::here("flags", "compaction_done.txt")
-
-  # Guard clause: stop if already done
-  if (fs::file_exists(compact_flag)) {
-    message("Compaction already marked as complete. Skipping.")
-    return(invisible(NULL))
-  }
-
-  l1 <- fs::dir_ls(clean_dir, recurse = FALSE, type = "dir")
-
-  message("condensing directory")
-  walk(l1, \(x) {
-    l2 <- fs::dir_ls(x, type = "dir")
-    walk(l2, \(y) {
-      dirname <- str_replace(y, "gbif_noram", condense_fold_name)
-      if (fs::dir_exists(dirname)) {
-        message("deleting completed dir ", y)
-        fs::dir_delete(y)
-        return()
-      }
-
-      message(paste0("processing ", dirname))
-      fs::dir_create(dirname)
-
-      files <- fs::dir_ls(y, type = "file")
-      pq <- open_dataset(files)
-      write_dataset(
-        pq,
-        path = dirname,
-        format = "parquet",
-        existing_data_behavior = "overwrite",
-        max_rows_per_file = 1000000,
-        max_partitions = 20000
-      )
-      message("deleting completed dir ", y)
-      fs::dir_delete(y)
-      gc(full = TRUE)
-    })
-  })
-
-  gc(full = TRUE)
-  # walk back through to delete the files in the directories
-
-  message("files condensed, cleaning up uncompacted files")
-  path <- normalizePath(clean_dir, mustWork = FALSE)
-
-  if (.Platform$OS.type == "windows") {
-    # /s removes all subdirectories and files; /q runs in quiet mode (no prompt)
-    system(
-      sprintf('cmd.exe /c rmdir /s /q "%s"', path),
-      show.output.on.console = FALSE
-    )
-  } else {
-    # Unix/macOS equivalent
-    system(sprintf('rm -rf "%s"', path))
-  }
-
-  message("moving condensed files to clean dir")
-  fs::dir_delete(clean_dir)
-  fs::file_move(condensed_dir, clean_dir)
-  fs::dir_create(dirname(compact_flag))
-  fs::file_create(compact_flag)
-}
-
-run_compaction()
-
-
 # now that the files are condesned, listing them is relaitvely quick
 # we actually want to operate on a file bases, and can condense the output at the end
 # so basically, birds are going to be unable to process all at once
@@ -298,15 +225,9 @@ fs::dir_create(spatcount_dir)
 walk(
   c_files,
   \(x) {
-    kingdom <- dirname(x) %>%
-      dirname() %>%
-      basename() %>%
-      str_remove("kingdom=")
-    family <- dirname(x) %>% basename() %>% str_remove("family=")
-
     savename <- here::here(
       spatcount_dir,
-      glue::glue("{kingdom}_{family}_{basename(x)}")
+      glue::glue("{basename(x)}")
     )
     if (file.exists(savename)) {
       return()
