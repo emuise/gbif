@@ -306,12 +306,58 @@ bc_counts <- all_counts %>%
 species_list <- bc_counts %>%
   pull(species)
 
-system.time({
-  counts_wfiles %>%
-    filter(species == "Gulo gulo") %>%
-    collect() %>%
-    pull(file) %>%
-    arrow::open_dataset() %>%
-    filter(species == "Gulo gulo") %>%
+rast_vars <- c(
+  "MAP", # mean annual precipitation (mm)
+  "DD_0", # chilling degree days (Degree days below 0 °C)
+  "PAS", # precipitation as snow (mm)
+  "CMD", # Hargreave’s climatic moisture index
+  "DD18"
+) # warming degree days above 18 °C.
+
+# this is downloaded in the julia file
+# i have double checked that all climate layers use the same mask
+snap <- here::here("data", "climate", "Normal_1991_2020_bioclim") %>%
+  fs::dir_ls(type = "file") %>%
+  .[[1]] %>%
+  rast()
+
+snap_vals <- terra::values(snap)[, 1]
+
+cellcount_dir <- here::here("data", "cellcounts")
+fs::dir_create(cellcount_dir)
+
+walk(1:length(c_files), \(n) {
+  x <- c_files[[n]]
+  savename <- here::here(cellcount_dir, basename(x))
+  if (file.exists(savename)) {
+    return()
+  }
+
+  message(glue::glue("[{n}/{length(c_files)}]: {basename(x)}"))
+
+  df <- open_dataset(x) %>%
+    select(species, decimallatitude, decimallongitude) %>%
     collect()
+
+  if (nrow(df) == 0) {
+    # probably should save an empty file
+    return()
+  }
+
+  pts <- terra::vect(
+    df,
+    geom = c("decimallongitude", "decimallatitude"),
+    crs = "epsg:4326"
+  ) %>%
+    project(snap)
+
+  df$cell <- terra::cellFromXY(snap, terra::crds(pts))
+
+  cc <- df %>%
+    filter(!is.na(cell)) %>% # this removes anything outside the raster bounds
+    mutate(snap_val = snap_vals[cell]) %>%
+    filter(!is.na(snap_val)) %>%
+    select(-snap_val) %>%
+    count(species, cell, name = "n") %>%
+    arrow::write_parquet(savename)
 })
