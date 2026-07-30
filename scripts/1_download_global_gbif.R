@@ -53,10 +53,10 @@ run_download <- function(max_retries = Inf) {
 
 run_download(max_retries = 30)
 
-gbif_files <- fs::dir_ls(raw_gbif_loc, recurse = T, type = "file")
-
-
-fs::file_delete(gbif_files[is.na(as.numeric(basename(gbif_files)))])
+if (!file.exists(here::here("flags", "download_done.txt"))) {
+  gbif_files <- fs::dir_ls(raw_gbif_loc, recurse = T, type = "file")
+  fs::file_delete(gbif_files[is.na(as.numeric(basename(gbif_files)))])
+}
 
 noram <- vect(
   "https://github.com/gbif/continents/raw/master/continent_cookie_cutter.gpkg"
@@ -182,6 +182,9 @@ run_split_grouped <- function() {
     gc(full = TRUE)
     gc(full = TRUE)
   })
+
+  fs::dir_create(dirname(split_flag))
+  fs::file_create(split_flag)
 }
 
 run_split_grouped()
@@ -190,8 +193,6 @@ if (fs::dir_exists(raw_gbif_loc)) {
   fs::dir_delete(raw_gbif_loc)
 }
 
-fs::dir_create(dirname(split_flag))
-fs::file_create(split_flag)
 
 # now that the files are condesned, listing them is relaitvely quick
 # we actually want to operate on a file bases, and can condense the output at the end
@@ -287,5 +288,30 @@ walk(
   }
 )
 
+counts_wfiles <- arrow::open_dataset(spatcount_dir)
 
-counts_wfiles <- arrow::read_parquet(spatcount_dir)
+all_counts <- counts_wfiles %>%
+  group_by(kingdom, phylum, class, order, family, genus, species) %>%
+  summarize(
+    n_bc = sum(n_bc),
+    n_notbc = sum(n_notbc),
+    n_total = sum(n_total)
+  )
+
+bc_counts <- all_counts %>%
+  filter(n_bc > 0) %>%
+  collect() %>%
+  arrange(kingdom, phylum, class, order, family, genus, species)
+
+species_list <- bc_counts %>%
+  pull(species)
+
+system.time({
+  counts_wfiles %>%
+    filter(species == "Gulo gulo") %>%
+    collect() %>%
+    pull(file) %>%
+    arrow::open_dataset() %>%
+    filter(species == "Gulo gulo") %>%
+    collect()
+})
