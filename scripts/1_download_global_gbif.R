@@ -361,3 +361,25 @@ walk(1:length(c_files), \(n) {
     count(species, cell, name = "n") %>%
     arrow::write_parquet(savename)
 })
+
+cc <- arrow::open_dataset(cellcount_dir)
+
+cellcounts <- arrow::open_dataset(cellcount_dir) %>%
+  group_by(species, cell) %>% 
+  summarise(n = sum(n))
+
+sample_intensity <- cc %>%
+  group_by(cell) %>%
+  summarize(n = sum(n)) %>%
+  collect()
+
+r <- snap
+values(r) <- NA
+
+r[!is.nan(snap_vals)] <- 0
+
+r[sample_intensity$cell] <- sample_intensity$n
+
+smooth_r <- focal(r, w = 15, fun = "mean", na.rm = T, na.policy = "omit")
+
+plot(log(smooth_r))
