@@ -336,6 +336,9 @@ walk(1:length(c_files), \(n) {
   message(glue::glue("[{n}/{length(c_files)}]: {basename(x)}"))
 
   df <- open_dataset(x) %>%
+    # keep birds since 1990, keep all other observations since 1970
+    filter((class == "Aves" & year >= 1990) |
+           ((is.na(class) | class != "Aves") & year >= 1970)) %>%
     select(species, decimallatitude, decimallongitude) %>%
     collect()
 
