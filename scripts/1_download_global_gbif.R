@@ -364,7 +364,7 @@ walk(1:length(c_files), \(n) {
 
 cc <- arrow::open_dataset(cellcount_dir)
 
-cellcounts <- arrow::open_dataset(cellcount_dir) %>%
+cellcounts <- cc %>%
   group_by(species, cell) %>% 
   summarise(n = sum(n))
 
@@ -382,4 +382,4 @@ r[sample_intensity$cell] <- sample_intensity$n
 
 smooth_r <- focal(r, w = 15, fun = "mean", na.rm = T, na.policy = "omit")
 
-plot(log(smooth_r))
+plot(log(smooth_r), main = "log(mean sampling intensity) (30 km focal window)")
