@@ -359,7 +359,7 @@ walk(1:length(c_files), \(n) {
   cc <- df %>%
     filter(!is.na(cell)) %>% # this removes anything outside the raster bounds
     mutate(snap_val = snap_vals[cell]) %>%
-    filter(!is.na(snap_val)) %>%
+    filter(!is.na(snap_val)) %>% # this only keeps values that have matching climate values
     select(-snap_val) %>%
     count(species, cell, name = "n") %>%
     arrow::write_parquet(savename)
