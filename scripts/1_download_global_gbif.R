@@ -318,7 +318,7 @@ rast_vars <- c(
 # i have double checked that all climate layers use the same mask
 snap <- here::here("data", "climate", "Normal_1991_2020_bioclim") %>%
   fs::dir_ls(type = "file") %>%
-  .[[1]] %>%
+  head(1) %>%
   rast()
 
 snap_vals <- terra::values(snap)[, 1]
